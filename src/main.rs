@@ -1,6 +1,6 @@
 mod backends;
 mod cursor;
 mod frontend;
-mod il;
+mod intermediate;
 
 fn main() {}

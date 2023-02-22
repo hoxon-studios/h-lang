@@ -1,6 +1,6 @@
 use crate::{
     backends::x86_64::X86_64,
-    il::expressions::{Addition, Expression},
+    intermediate::expressions::{Addition, Expression},
 };
 
 impl X86_64 {
@@ -40,7 +40,7 @@ add rax, {left}"
 mod tests {
     use crate::{
         backends::x86_64::{Scope, Symbol, X86_64},
-        il::expressions::{Addition, Evaluation, Expression},
+        intermediate::expressions::{Addition, Evaluation, Expression},
     };
 
     #[test]

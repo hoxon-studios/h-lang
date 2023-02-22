@@ -56,7 +56,7 @@ fn parse_addition(stack: &mut Vec<Expression>) -> Result<(), String> {
 mod tests {
     use crate::{
         frontend::tokens::{Operation, Operator, Token},
-        il::expressions::Addition,
+        intermediate::expressions::Addition,
     };
 
     use super::{
