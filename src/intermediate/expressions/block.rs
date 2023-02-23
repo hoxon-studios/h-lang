@@ -1,4 +1,4 @@
-use super::{Block, Evaluation, Expression, Statement};
+use super::{Block, Evaluation, Expression};
 
 pub fn parse_block(stack: &mut Vec<Expression>) -> Result<(), String> {
     let Some(right) = stack.pop() else {

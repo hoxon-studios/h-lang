@@ -11,7 +11,7 @@ impl X86_64 {
         match evaluation {
             Evaluation::Addition(addition) => self.addition(addition),
             Evaluation::Block(block) => self.block(block),
-            Evaluation::FunctionCall(function_call) => todo!(),
+            Evaluation::FunctionCall(function_call) => self.function_call(function_call),
         }
     }
 }
