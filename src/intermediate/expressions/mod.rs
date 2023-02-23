@@ -6,6 +6,7 @@ pub mod let_statement;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Expression {
+    Unit,
     Constant(String),
     Label(String),
     Set(ExpressionSet),
@@ -21,7 +22,7 @@ pub enum Statement {
 #[derive(PartialEq, Debug, Clone)]
 pub struct Block {
     pub body: Vec<Statement>,
-    pub result: Option<Expression>,
+    pub result: Expression,
 }
 
 #[derive(PartialEq, Debug, Clone)]

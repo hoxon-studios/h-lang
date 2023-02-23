@@ -29,7 +29,9 @@ add rax, {left}"
 add rax, {left}"
                     )
                 }
-                Expression::Set(_) | Expression::Statement(_) => panic!("Invalid operand"),
+                Expression::Set(_) | Expression::Statement(_) | Expression::Unit => {
+                    panic!("Invalid operand")
+                }
             },
             Expression::Label(left) => match &addition.right {
                 Expression::Constant(right) => {
@@ -58,7 +60,9 @@ add rax, {right}"
 add rax, {left}"
                     )
                 }
-                Expression::Set(_) | Expression::Statement(_) => panic!("Invalid operand"),
+                Expression::Set(_) | Expression::Statement(_) | Expression::Unit => {
+                    panic!("Invalid operand")
+                }
             },
             Expression::Result(left) => match &addition.right {
                 Expression::Constant(right) => {
@@ -90,9 +94,13 @@ pop rdx
 add rax, rdx"
                     )
                 }
-                Expression::Set(_) | Expression::Statement(_) => panic!("Invalid operand"),
+                Expression::Set(_) | Expression::Statement(_) | Expression::Unit => {
+                    panic!("Invalid operand")
+                }
             },
-            Expression::Set(_) | Expression::Statement(_) => panic!("Invalid operand"),
+            Expression::Set(_) | Expression::Statement(_) | Expression::Unit => {
+                panic!("Invalid operand")
+            }
         }
     }
 }

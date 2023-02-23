@@ -12,13 +12,13 @@ pub fn parse_block(stack: &mut Vec<Expression>) -> Result<(), String> {
         (Expression::Statement(left), Expression::Statement(right)) => {
             stack.push(Expression::Result(Box::new(Evaluation::Block(Block {
                 body: vec![left, right],
-                result: None,
+                result: Expression::Unit,
             }))))
         }
         (Expression::Statement(left), right) => {
             stack.push(Expression::Result(Box::new(Evaluation::Block(Block {
                 body: vec![left],
-                result: Some(right),
+                result: right,
             }))));
         }
         (Expression::Result(evaluation), Expression::Statement(right)) => match *evaluation {
@@ -30,7 +30,7 @@ pub fn parse_block(stack: &mut Vec<Expression>) -> Result<(), String> {
         },
         (Expression::Result(evaluation), right) => match *evaluation {
             Evaluation::Block(mut block) => {
-                block.result = Some(right);
+                block.result = right;
                 stack.push(Expression::Result(Box::new(Evaluation::Block(block))));
             }
             _ => return Err("Invalid operand".to_string()),
@@ -69,7 +69,7 @@ mod tests {
                         label: "another_var".to_string()
                     })
                 ],
-                result: None
+                result: Expression::Unit
             })))
         );
     }
@@ -87,12 +87,10 @@ mod tests {
                 body: vec![Statement::Let(LetStatement {
                     label: "some_var".to_string()
                 }),],
-                result: Some(Expression::Result(Box::new(Evaluation::Addition(
-                    Addition {
-                        left: Expression::Constant("1".to_string()),
-                        right: Expression::Constant("2".to_string())
-                    }
-                ))))
+                result: Expression::Result(Box::new(Evaluation::Addition(Addition {
+                    left: Expression::Constant("1".to_string()),
+                    right: Expression::Constant("2".to_string())
+                })))
             })))
         );
     }

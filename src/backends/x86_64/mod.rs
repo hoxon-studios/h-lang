@@ -28,6 +28,7 @@ impl X86_64 {
             Expression::Label(label) => self.label(label),
             Expression::Result(eval) => self.evaluation(eval),
             Expression::Statement(statement) => self.statement(statement),
+            Expression::Unit => panic!("Unit cannot be compiled"),
             Expression::Set(_) => panic!("Sets cannot be compiled"),
         }
     }

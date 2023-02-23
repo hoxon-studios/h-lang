@@ -1,4 +1,7 @@
-use crate::{backends::x86_64::X86_64, intermediate::expressions::Block};
+use crate::{
+    backends::x86_64::X86_64,
+    intermediate::expressions::{Block, Expression},
+};
 
 impl X86_64 {
     pub fn block(&mut self, block: &Block) -> String {
@@ -8,8 +11,11 @@ impl X86_64 {
             .map(|statement| self.statement(statement))
             .collect::<Vec<String>>();
 
-        if let Some(result) = &block.result {
-            body.push(self.compile(&result));
+        match &block.result {
+            Expression::Unit => {}
+            _ => {
+                body.push(self.compile(&block.result));
+            }
         }
 
         return body.concat();
