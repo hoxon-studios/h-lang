@@ -5,16 +5,25 @@ use crate::{
 
 impl X86_64 {
     pub fn let_statement(&mut self, let_statement: &LetStatement) -> String {
-        let symbol = Symbol {
-            name: let_statement.label.clone(),
-            size: 8,
-        };
-
         if let Some(scope) = self.scopes.last_mut() {
-            scope.stack.push(symbol);
+            if let Some(symbol) = scope
+                .stack
+                .iter_mut()
+                .find(|s| s.name == let_statement.label)
+            {
+                symbol.size = 8;
+            } else {
+                scope.stack.push(Symbol {
+                    name: let_statement.label.clone(),
+                    size: 8,
+                });
+            }
         } else {
             self.scopes.push(Scope {
-                stack: vec![symbol],
+                stack: vec![Symbol {
+                    name: let_statement.label.clone(),
+                    size: 8,
+                }],
             });
         }
 

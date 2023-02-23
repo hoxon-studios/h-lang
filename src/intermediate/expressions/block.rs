@@ -1,29 +1,40 @@
-use super::{Block, Expression, Statement};
+use super::{Block, Evaluation, Expression, Statement};
 
 pub fn parse_block(stack: &mut Vec<Expression>) -> Result<(), String> {
     let Some(right) = stack.pop() else {
         return Err("Operand not found".to_string());
     };
+    let Some(left) = stack.pop() else {
+        return Err("Operand not found".to_string());
+    };
 
-    match right {
-        Expression::Statement(Statement::Block(_)) => return Err("Invalid operand".to_string()),
-        Expression::Statement(right) => {
-            let Some(left) = stack.pop() else {
-                return Err("Operand not found".to_string());
-            };
-            match left {
-                Expression::Statement(Statement::Block(mut block)) => {
-                    block.0.push(right);
-                    stack.push(Expression::Statement(Statement::Block(block)));
-                }
-                Expression::Statement(left) => {
-                    stack.push(Expression::Statement(Statement::Block(Block(vec![
-                        left, right,
-                    ]))))
-                }
-                _ => return Err("Invalid operand".to_string()),
-            }
+    match (left, right) {
+        (Expression::Statement(left), Expression::Statement(right)) => {
+            stack.push(Expression::Result(Box::new(Evaluation::Block(Block {
+                body: vec![left, right],
+                result: None,
+            }))))
         }
+        (Expression::Statement(left), right) => {
+            stack.push(Expression::Result(Box::new(Evaluation::Block(Block {
+                body: vec![left],
+                result: Some(right),
+            }))));
+        }
+        (Expression::Result(evaluation), Expression::Statement(right)) => match *evaluation {
+            Evaluation::Block(mut block) => {
+                block.body.push(right);
+                stack.push(Expression::Result(Box::new(Evaluation::Block(block))));
+            }
+            _ => return Err("Invalid operand".to_string()),
+        },
+        (Expression::Result(evaluation), right) => match *evaluation {
+            Evaluation::Block(mut block) => {
+                block.result = Some(right);
+                stack.push(Expression::Result(Box::new(Evaluation::Block(block))));
+            }
+            _ => return Err("Invalid operand".to_string()),
+        },
         _ => return Err("Invalid operand".to_string()),
     }
 
@@ -35,7 +46,7 @@ mod tests {
     use crate::{
         frontend::tokenize,
         intermediate::{
-            expressions::{Block, Expression, LetStatement, Statement},
+            expressions::{Addition, Block, Evaluation, Expression, LetStatement, Statement},
             parse,
         },
     };
@@ -49,14 +60,40 @@ mod tests {
         // ASSERT
         assert_eq!(
             result,
-            Expression::Statement(Statement::Block(Block(vec![
-                Statement::Let(LetStatement {
+            Expression::Result(Box::new(Evaluation::Block(Block {
+                body: vec![
+                    Statement::Let(LetStatement {
+                        label: "some_var".to_string()
+                    }),
+                    Statement::Let(LetStatement {
+                        label: "another_var".to_string()
+                    })
+                ],
+                result: None
+            })))
+        );
+    }
+
+    #[test]
+    fn it_parses_block_with_result() {
+        let code = "let some_var; 1 + 2";
+        let tokens = tokenize(code).unwrap();
+        // ACT
+        let result = parse(tokens).unwrap();
+        // ASSERT
+        assert_eq!(
+            result,
+            Expression::Result(Box::new(Evaluation::Block(Block {
+                body: vec![Statement::Let(LetStatement {
                     label: "some_var".to_string()
-                }),
-                Statement::Let(LetStatement {
-                    label: "another_var".to_string()
-                })
-            ])))
+                }),],
+                result: Some(Expression::Result(Box::new(Evaluation::Addition(
+                    Addition {
+                        left: Expression::Constant("1".to_string()),
+                        right: Expression::Constant("2".to_string())
+                    }
+                ))))
+            })))
         );
     }
 }

@@ -16,11 +16,13 @@ pub enum Expression {
 #[derive(PartialEq, Debug, Clone)]
 pub enum Statement {
     Let(LetStatement),
-    Block(Block),
 }
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct Block(pub Vec<Statement>);
+pub struct Block {
+    pub body: Vec<Statement>,
+    pub result: Option<Expression>,
+}
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct LetStatement {
@@ -32,6 +34,7 @@ pub struct ExpressionSet(pub Vec<Expression>);
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Evaluation {
+    Block(Block),
     Addition(Addition),
     FunctionCall(FunctionCall),
 }
