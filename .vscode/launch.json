@@ -7,8 +7,37 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceFolder}/<executable file>",
+            "name": "Debug executable 'hlang'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=hlang",
+                    "--package=hlang"
+                ],
+                "filter": {
+                    "name": "hlang",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'hlang'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=hlang",
+                    "--package=hlang"
+                ],
+                "filter": {
+                    "name": "hlang",
+                    "kind": "bin"
+                }
+            },
             "args": [],
             "cwd": "${workspaceFolder}"
         }
