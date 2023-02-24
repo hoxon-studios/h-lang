@@ -11,6 +11,7 @@ impl X86_64 {
             .body
             .iter()
             .map(|statement| self.statement(statement))
+            .filter(|s| s != "")
             .collect::<Vec<String>>();
 
         match &block.result {
@@ -32,6 +33,7 @@ impl X86_64 {
 
         format!(
             "\
+sub rsp, {stack_size}
 {body}
 add rsp, {stack_size}"
         )
@@ -52,8 +54,7 @@ mod tests {
         assert_eq!(
             result,
             "\
-push rax
-push rax
+sub rsp, 16
 mov rax, QWORD[rbp - 8]
 add rax, 2
 add rsp, 16"
