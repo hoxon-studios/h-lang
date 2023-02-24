@@ -62,13 +62,16 @@ pop {reg}"
             .collect::<Vec<String>>()
             .join("\n");
 
-        let function_name = &function_call.label;
+        let function_call = match function_call.label.as_str() {
+            "syscall" => "syscall".to_string(),
+            _ => format!("call {}", &function_call.label),
+        };
 
         format!(
             "\
 {evaluations}
 {parameters}
-call {function_name}"
+{function_call}"
         )
     }
 }
@@ -95,6 +98,24 @@ pop rdx
 mov rsi, 3
 pop rdi
 call some_function"
+        );
+    }
+
+    #[test]
+    fn it_compiles_system_call() {
+        let code = "syscall(0x01, 0, message, length)";
+        let expression = parse(tokenize(code).unwrap()).unwrap();
+        // ACT
+        let result = X86_64::init().compile(&expression);
+        // ASSERT
+        assert_eq!(
+            result,
+            "
+mov rdx, length
+mov rsi, message
+mov rdi, 0
+mov rax, 0x01
+syscall"
         )
     }
 }

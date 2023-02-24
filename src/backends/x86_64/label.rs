@@ -29,4 +29,14 @@ mod tests {
         // ASSERT
         assert_eq!(result, "QWORD[rbp - 8]");
     }
+
+    #[test]
+    fn it_compiles_global_label() {
+        let code = "some_label";
+        let expression = parse(tokenize(code).unwrap()).unwrap();
+        // ACT
+        let result = X86_64::init().compile(&expression);
+        // ASSERT
+        assert_eq!(result, "some_label");
+    }
 }

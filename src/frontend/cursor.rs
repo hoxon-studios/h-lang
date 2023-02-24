@@ -5,7 +5,7 @@ pub fn skip_space(code: &str) -> &str {
 pub fn eat_number(code: &str) -> Option<(&str, &str)> {
     if let Some(mut cursor) = eat_token(code, "0x") {
         let mut length = 2;
-        while let Some((next, '0'..='9' | 'a'..='f' | 'A'..='F')) = eat_char(code) {
+        while let Some((next, '0'..='9' | 'a'..='f' | 'A'..='F')) = eat_char(cursor) {
             length += 1;
             cursor = next;
         }
@@ -13,7 +13,7 @@ pub fn eat_number(code: &str) -> Option<(&str, &str)> {
         Some((cursor, &code[0..length]))
     } else if let Some(mut cursor) = eat_token(code, "0b") {
         let mut length = 2;
-        while let Some((next, '0' | '1')) = eat_char(code) {
+        while let Some((next, '0' | '1')) = eat_char(cursor) {
             length += 1;
             cursor = next;
         }
