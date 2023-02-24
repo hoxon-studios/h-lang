@@ -1,6 +1,6 @@
 pub mod addition;
 pub mod block;
-pub mod function;
+pub mod function_call;
 pub mod group;
 pub mod let_statement;
 

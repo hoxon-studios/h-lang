@@ -1,6 +1,6 @@
 use super::{Evaluation, Expression, ExpressionSet, FunctionCall};
 
-pub fn parse_function(stack: &mut Vec<Expression>, label: &str) -> Result<(), String> {
+pub fn parse_function_call(stack: &mut Vec<Expression>, label: &str) -> Result<(), String> {
     let Some(expression) = stack.pop() else {
         return Err("Operand not found".to_string());
     };
