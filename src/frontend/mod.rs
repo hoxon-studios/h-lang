@@ -22,16 +22,38 @@ pub fn tokenize(code: &str) -> Result<Vec<Token>, String> {
                 Operator::LeftParenthesis => {
                     operators.push(operator);
                 }
+                Operator::LeftBracket => {
+                    operators.push(operator);
+                }
                 Operator::RightParenthesis => {
                     while let Some(operator) = operators.pop() {
                         match operator {
                             Operator::LeftParenthesis => break,
-                            Operator::RightParenthesis => {
-                                return Err("Open parenthesis missing".to_string())
-                            }
                             Operator::Operation(operation) => {
                                 output.push(Token::Operation(operation));
                             }
+                            Operator::RightParenthesis => {
+                                return Err("Open parenthesis missing".to_string())
+                            }
+                            Operator::LeftBracket => return Err("Left bracket is open".to_string()),
+                            Operator::RightBracket => panic!("Invalid operator"),
+                        }
+                    }
+                }
+                Operator::RightBracket => {
+                    while let Some(operator) = operators.pop() {
+                        match operator {
+                            Operator::LeftBracket => break,
+                            Operator::Operation(operation) => {
+                                output.push(Token::Operation(operation));
+                            }
+                            Operator::RightBracket => {
+                                return Err("Open bracket is missing".to_string())
+                            }
+                            Operator::LeftParenthesis => {
+                                return Err("Left parenthesis is open".to_string())
+                            }
+                            Operator::RightParenthesis => panic!("Invalid operator"),
                         }
                     }
                 }
@@ -39,7 +61,9 @@ pub fn tokenize(code: &str) -> Result<Vec<Token>, String> {
                     let pop = if let Some(stack) = operators.last() {
                         match stack {
                             Operator::LeftParenthesis => false,
+                            Operator::LeftBracket => false,
                             Operator::RightParenthesis => panic!("Invalid operator"),
+                            Operator::RightBracket => panic!("Invalid operator"),
                             Operator::Operation(stack) => {
                                 let stack_precedence = stack.precedence();
                                 let current_precedence = operation.precedence();
@@ -57,6 +81,8 @@ pub fn tokenize(code: &str) -> Result<Vec<Token>, String> {
                         match operators.pop().expect("Operator not found") {
                             Operator::LeftParenthesis => panic!("Invalid operator"),
                             Operator::RightParenthesis => panic!("Invalid operator"),
+                            Operator::LeftBracket => panic!("Invalid operator"),
+                            Operator::RightBracket => panic!("Invalid operator"),
                             Operator::Operation(operation) => {
                                 output.push(Token::Operation(operation));
                             }
@@ -84,6 +110,8 @@ pub fn tokenize(code: &str) -> Result<Vec<Token>, String> {
         match operator {
             Operator::LeftParenthesis => return Err("Closing parenthesis missing".to_string()),
             Operator::RightParenthesis => panic!("Invalid operator"),
+            Operator::LeftBracket => return Err("Closing bracket missing".to_string()),
+            Operator::RightBracket => panic!("Invalid operator"),
             Operator::Operation(operation) => {
                 output.push(Token::Operation(operation));
             }
@@ -110,6 +138,10 @@ fn eat_operator(code: &str) -> Option<(&str, Operator)> {
         Some((code, Operator::LeftParenthesis))
     } else if let Some(code) = eat_token(code, ")") {
         Some((code, Operator::RightParenthesis))
+    } else if let Some(code) = eat_token(code, "{") {
+        Some((code, Operator::LeftBracket))
+    } else if let Some(code) = eat_token(code, "}") {
+        Some((code, Operator::RightBracket))
     } else if let Some(code) = eat_token(code, "+") {
         Some((code, Operator::Operation(Operation::Addition)))
     } else if let Some(code) = eat_token(code, ",") {
