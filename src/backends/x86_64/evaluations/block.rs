@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn it_compiles_block() {
-        let code = "{ let some_value; let another; some_value + 2 }";
+        let code = "let some_value; let another; some_value + 2";
         let expression = parse(tokenize(code).unwrap()).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);

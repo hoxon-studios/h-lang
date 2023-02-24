@@ -10,8 +10,6 @@ pub enum Token<'a> {
 pub enum Operator<'a> {
     LeftParenthesis,
     RightParenthesis,
-    LeftBracket,
-    RightBracket,
     Operation(Operation<'a>),
 }
 
