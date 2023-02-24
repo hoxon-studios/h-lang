@@ -20,7 +20,10 @@ impl X86_64 {
             }
         }
 
-        "".to_string()
+        format!(
+            "\
+push rax"
+        )
     }
 }
 
@@ -35,6 +38,10 @@ mod tests {
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
-        assert_eq!(result, "")
+        assert_eq!(
+            result,
+            "\
+push rax"
+        )
     }
 }

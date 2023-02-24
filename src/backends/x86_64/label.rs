@@ -30,7 +30,7 @@ mod tests {
         assert_eq!(
             result,
             "\
-sub rsp, 8
+push rax
 mov rax, QWORD[rbp - 8]
 add rsp, 8"
         );

@@ -20,7 +20,7 @@ impl X86_64 {
             }
         }
 
-        let body = body.concat();
+        let body = body.join("\n");
         let stack_size: usize = self
             .scopes
             .pop()
@@ -32,7 +32,6 @@ impl X86_64 {
 
         format!(
             "\
-sub rsp, {stack_size}
 {body}
 add rsp, {stack_size}"
         )
@@ -53,7 +52,8 @@ mod tests {
         assert_eq!(
             result,
             "\
-sub rsp, 16
+push rax
+push rax
 mov rax, QWORD[rbp - 8]
 add rax, 2
 add rsp, 16"
