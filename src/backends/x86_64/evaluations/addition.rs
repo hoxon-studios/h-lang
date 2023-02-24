@@ -133,8 +133,10 @@ mov rax, 1 + 2"
         assert_eq!(
             result,
             "\
+sub rsp, 8
 mov rax, QWORD[rbp - 8]
-add rax, 1"
+add rax, 1
+add rsp, 8"
         );
     }
 
@@ -163,8 +165,10 @@ add rax, 1"
         assert_eq!(
             result,
             "\
+sub rsp, 8
 mov rax, 2 + 3
-add rax, QWORD[rbp - 8]"
+add rax, QWORD[rbp - 8]
+add rsp, 8"
         );
     }
 
@@ -178,8 +182,10 @@ add rax, QWORD[rbp - 8]"
         assert_eq!(
             result,
             "\
+sub rsp, 16
 mov rax, QWORD[rbp - 8]
-add rax, QWORD[rbp - 16]"
+add rax, QWORD[rbp - 16]
+add rsp, 16"
         )
     }
 

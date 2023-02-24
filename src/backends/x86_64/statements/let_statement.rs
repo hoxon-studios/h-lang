@@ -1,5 +1,5 @@
 use crate::{
-    backends::x86_64::{Scope, Symbol, X86_64},
+    backends::x86_64::{Symbol, X86_64},
     intermediate::expressions::LetStatement,
 };
 
@@ -18,13 +18,6 @@ impl X86_64 {
                     size: 8,
                 });
             }
-        } else {
-            self.scopes.push(Scope {
-                stack: vec![Symbol {
-                    name: let_statement.label.clone(),
-                    size: 8,
-                }],
-            });
         }
 
         "".to_string()

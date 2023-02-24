@@ -27,7 +27,13 @@ mod tests {
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
-        assert_eq!(result, "QWORD[rbp - 8]");
+        assert_eq!(
+            result,
+            "\
+sub rsp, 8
+mov rax, QWORD[rbp - 8]
+add rsp, 8"
+        );
     }
 
     #[test]
@@ -37,6 +43,10 @@ mod tests {
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
-        assert_eq!(result, "some_label");
+        assert_eq!(
+            result,
+            "\
+mov rax, some_label"
+        );
     }
 }

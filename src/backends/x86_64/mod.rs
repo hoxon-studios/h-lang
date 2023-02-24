@@ -24,11 +24,23 @@ impl X86_64 {
     }
     pub fn compile(&mut self, expression: &Expression) -> String {
         match expression {
-            Expression::Constant(value) => value.clone(),
-            Expression::Label(label) => self.label(label),
+            Expression::Constant(value) => format!(
+                "\
+mov rax, {value}"
+            ),
+            Expression::Label(label) => {
+                let label = self.label(label);
+                format!(
+                    "\
+mov rax, {label}"
+                )
+            }
             Expression::Result(eval) => self.evaluation(eval),
             Expression::Statement(statement) => self.statement(statement),
-            Expression::Unit => panic!("Unit cannot be compiled"),
+            Expression::Unit => format!(
+                "\
+mov rax, 0"
+            ),
             Expression::Set(_) => panic!("Sets cannot be compiled"),
         }
     }
