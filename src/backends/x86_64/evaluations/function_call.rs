@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn it_compiles_function_call() {
-        let code = "some_function(1 + 2, 3, 4 + 5)";
+        let code = "some_function$(1 + 2, 3, 4 + 5)";
         let expression = parse(tokenize(code).unwrap()).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
@@ -103,7 +103,7 @@ call some_function"
 
     #[test]
     fn it_compiles_system_call() {
-        let code = "syscall(0x01, 0, message, length)";
+        let code = "syscall$(0x01, 0, message, length)";
         let expression = parse(tokenize(code).unwrap()).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);

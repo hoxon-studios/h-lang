@@ -112,20 +112,24 @@ fn eat_operator(code: &str) -> Option<(&str, Operator)> {
         Some((code, Operator::RightParenthesis))
     } else if let Some(code) = eat_token(code, "=") {
         Some((code, Operator::Operation(Operation::Assign)))
+    } else if let Some(code) = eat_token(code, "*") {
+        Some((code, Operator::Operation(Operation::Product)))
     } else if let Some(code) = eat_token(code, "+") {
         Some((code, Operator::Operation(Operation::Addition)))
     } else if let Some(code) = eat_token(code, ",") {
         Some((code, Operator::Operation(Operation::Group)))
     } else if let Some(code) = eat_token(code, ";") {
         Some((code, Operator::Operation(Operation::Sequence)))
+    } else if let Some(code) = eat_token(code, ":") {
+        Some((code, Operator::Operation(Operation::Typify)))
+    } else if let Some(code) = eat_token(code, "$") {
+        Some((code, Operator::Operation(Operation::Call)))
     } else if let Some(code) = eat_token(code, "let ") {
         Some((code, Operator::Operation(Operation::Let)))
-    } else if let Some((code, label)) = eat_label(code) {
-        if let Some(_) = eat_token(skip_space(code), "(") {
-            Some((code, Operator::Operation(Operation::FunctionCall(label))))
-        } else {
-            None
-        }
+    } else if let Some(code) = eat_token(code, "fn ") {
+        Some((code, Operator::Operation(Operation::FunctionDefinition)))
+    } else if let Some(code) = eat_token(code, "pub ") {
+        Some((code, Operator::Operation(Operation::Export)))
     } else {
         None
     }
@@ -156,17 +160,20 @@ mod tests {
 
     #[test]
     fn it_tokenize_function() {
-        let code = "some_fn(1, 2)";
+        let code = "some_fn$(1, 2, 3)";
         // ACT
         let result = tokenize(code).unwrap();
         // ASSERT
         assert_eq!(
             result,
             vec![
+                Token::Label("some_fn"),
                 Token::Number("1"),
                 Token::Number("2"),
                 Token::Operation(Operation::Group),
-                Token::Operation(Operation::FunctionCall("some_fn"))
+                Token::Number("3"),
+                Token::Operation(Operation::Group),
+                Token::Operation(Operation::Call)
             ]
         );
     }
@@ -215,6 +222,56 @@ mod tests {
                 Token::Number("2"),
                 Token::Operation(Operation::Addition),
                 Token::Operation(Operation::Assign)
+            ]
+        );
+    }
+
+    #[test]
+    fn it_tokenize_function_definition() {
+        let code = "\
+            pub fn some_fn(x: usize, y: usize) usize
+                let a: usize = 1;
+                let b: usize = 2;
+                
+                a * x + b * y";
+        // ACT
+        let result = tokenize(code).unwrap();
+        // ASSERT
+        assert_eq!(
+            result,
+            vec![
+                Token::Label("some_fn"),
+                Token::Label("x"),
+                Token::Label("usize"),
+                Token::Operation(Operation::Typify),
+                Token::Label("y"),
+                Token::Label("usize"),
+                Token::Operation(Operation::Typify),
+                Token::Operation(Operation::Group),
+                Token::Label("usize"),
+                Token::Label("a"),
+                Token::Label("usize"),
+                Token::Operation(Operation::Typify),
+                Token::Number("1"),
+                Token::Operation(Operation::Assign),
+                Token::Operation(Operation::Let),
+                Token::Label("b"),
+                Token::Label("usize"),
+                Token::Operation(Operation::Typify),
+                Token::Number("2"),
+                Token::Operation(Operation::Assign),
+                Token::Operation(Operation::Let),
+                Token::Operation(Operation::Sequence),
+                Token::Label("a"),
+                Token::Label("x"),
+                Token::Operation(Operation::Product),
+                Token::Label("b"),
+                Token::Label("y"),
+                Token::Operation(Operation::Product),
+                Token::Operation(Operation::Addition),
+                Token::Operation(Operation::Sequence),
+                Token::Operation(Operation::FunctionDefinition),
+                Token::Operation(Operation::Export)
             ]
         );
     }

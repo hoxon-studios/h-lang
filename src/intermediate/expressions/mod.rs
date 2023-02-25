@@ -1,7 +1,7 @@
 pub mod addition;
 pub mod assignment;
 pub mod block;
-pub mod function_call;
+pub mod call;
 pub mod group;
 pub mod let_statement;
 

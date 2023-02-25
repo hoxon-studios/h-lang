@@ -1,7 +1,10 @@
 use super::{Evaluation, Expression, ExpressionSet, FunctionCall};
 
-pub fn parse_function_call(stack: &mut Vec<Expression>, label: &str) -> Result<(), String> {
+pub fn parse_call(stack: &mut Vec<Expression>) -> Result<(), String> {
     let Some(expression) = stack.pop() else {
+        return Err("Operand not found".to_string());
+    };
+    let Some(Expression::Label(label)) = stack.pop() else {
         return Err("Operand not found".to_string());
     };
     let parameters = match expression {
@@ -10,10 +13,7 @@ pub fn parse_function_call(stack: &mut Vec<Expression>, label: &str) -> Result<(
     };
 
     stack.push(Expression::Result(Box::new(Evaluation::FunctionCall(
-        FunctionCall {
-            label: label.to_string(),
-            parameters,
-        },
+        FunctionCall { label, parameters },
     ))));
 
     Ok(())
@@ -31,7 +31,7 @@ mod tests {
 
     #[test]
     fn it_parses_function() {
-        let code = "some_func(1, 2, 3)";
+        let code = "some_func$(1, 2, 3)";
         let tokens = tokenize(code).unwrap();
         // ACT
         let result = parse(tokens).unwrap();

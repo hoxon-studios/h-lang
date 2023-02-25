@@ -3,35 +3,43 @@ pub enum Token<'a> {
     Number(&'a str),
     Label(&'a str),
     Empty,
-    Operation(Operation<'a>),
+    Operation(Operation),
 }
 
 #[derive(PartialEq, Debug, Clone)]
-pub enum Operator<'a> {
+pub enum Operator {
     LeftParenthesis,
     RightParenthesis,
-    Operation(Operation<'a>),
+    Operation(Operation),
 }
 
 #[derive(PartialEq, Debug, Clone)]
-pub enum Operation<'a> {
+pub enum Operation {
     Let,
     Group,
     Sequence,
-    FunctionCall(&'a str),
     Assign,
     Addition,
+    Product,
+    Typify,
+    Call,
+    FunctionDefinition,
+    Export,
 }
 
-impl<'a> Operation<'a> {
+impl Operation {
     pub fn precedence(&self) -> usize {
         match self {
-            Operation::Sequence => 0,
-            Operation::Let => 1,
-            Operation::Assign => 2,
-            Operation::FunctionCall(_) => 3,
-            Operation::Group => 4,
-            Operation::Addition => 5,
+            Operation::Export => 0,
+            Operation::FunctionDefinition => 1,
+            Operation::Sequence => 2,
+            Operation::Let => 3,
+            Operation::Assign => 4,
+            Operation::Call => 5,
+            Operation::Group => 6,
+            Operation::Typify => 7,
+            Operation::Addition => 8,
+            Operation::Product => 9,
         }
     }
     pub fn left_associated(&self) -> bool {
@@ -39,9 +47,13 @@ impl<'a> Operation<'a> {
             Operation::Sequence => true,
             Operation::Let => true,
             Operation::Assign => false,
-            Operation::Addition => true,
             Operation::Group => true,
-            Operation::FunctionCall(_) => true,
+            Operation::Addition => true,
+            Operation::Product => true,
+            Operation::Typify => true,
+            Operation::FunctionDefinition => true,
+            Operation::Export => true,
+            Operation::Call => true,
         }
     }
 }
