@@ -9,32 +9,17 @@ impl X86_64 {
             if let Some(symbol) = scope
                 .stack
                 .iter_mut()
-                .find(|s| s.name == let_statement.label)
+                .find(|s| s.name == let_statement.0.label)
             {
                 symbol.size = 8;
             } else {
                 scope.stack.push(Symbol {
-                    name: let_statement.label.clone(),
+                    name: let_statement.0.label.clone(),
                     size: 8,
                 });
             }
         }
 
-        "".to_string()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{backends::x86_64::X86_64, frontend::tokenize, intermediate::parse};
-
-    #[test]
-    fn it_compiles_let_statement() {
-        let code = "let some_var";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
-        // ACT
-        let result = X86_64::init().compile(&expression);
-        // ASSERT
-        assert_eq!(result, "")
+        self.assignment(&let_statement.0)
     }
 }

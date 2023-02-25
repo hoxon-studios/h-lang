@@ -1,4 +1,5 @@
 pub mod addition;
+pub mod assignment;
 pub mod block;
 pub mod function_call;
 pub mod group;
@@ -11,12 +12,19 @@ pub enum Expression {
     Label(String),
     Set(ExpressionSet),
     Result(Box<Evaluation>),
-    Statement(Statement),
+    Statement(Box<Statement>),
 }
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Statement {
     Let(LetStatement),
+    Assignment(Assignment),
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct Assignment {
+    pub label: String,
+    pub value: Expression,
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -26,9 +34,7 @@ pub struct Block {
 }
 
 #[derive(PartialEq, Debug, Clone)]
-pub struct LetStatement {
-    pub label: String,
-}
+pub struct LetStatement(pub Assignment);
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct ExpressionSet(pub Vec<Expression>);

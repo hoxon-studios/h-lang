@@ -22,7 +22,7 @@ mod tests {
 
     #[test]
     fn it_compiles_label_stored_in_the_stack() {
-        let code = "let some_label; some_label";
+        let code = "let some_label = 1; some_label";
         let expression = parse(tokenize(code).unwrap()).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
@@ -31,6 +31,7 @@ mod tests {
             result,
             "\
 sub rsp, 8
+mov QWORD[rbp - 8], 1
 mov rax, QWORD[rbp - 8]
 add rsp, 8"
         );

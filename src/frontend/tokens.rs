@@ -19,6 +19,7 @@ pub enum Operation<'a> {
     Group,
     Sequence,
     FunctionCall(&'a str),
+    Assign,
     Addition,
 }
 
@@ -27,18 +28,20 @@ impl<'a> Operation<'a> {
         match self {
             Operation::Sequence => 0,
             Operation::Let => 1,
-            Operation::FunctionCall(_) => 2,
-            Operation::Group => 3,
-            Operation::Addition => 4,
+            Operation::Assign => 2,
+            Operation::FunctionCall(_) => 3,
+            Operation::Group => 4,
+            Operation::Addition => 5,
         }
     }
     pub fn left_associated(&self) -> bool {
         match self {
+            Operation::Sequence => true,
+            Operation::Let => true,
+            Operation::Assign => false,
             Operation::Addition => true,
             Operation::Group => true,
             Operation::FunctionCall(_) => true,
-            Operation::Let => true,
-            Operation::Sequence => true,
         }
     }
 }

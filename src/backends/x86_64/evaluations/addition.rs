@@ -125,7 +125,7 @@ mov rax, 1 + 2"
 
     #[test]
     fn it_compiles_addition_between_constant_and_label() {
-        let code = "let some_label; 1 + some_label";
+        let code = "let some_label = 1; 1 + some_label";
         let expression = parse(tokenize(code).unwrap()).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
@@ -134,6 +134,7 @@ mov rax, 1 + 2"
             result,
             "\
 sub rsp, 8
+mov QWORD[rbp - 8], 1
 mov rax, QWORD[rbp - 8]
 add rax, 1
 add rsp, 8"
@@ -157,7 +158,7 @@ add rax, 1"
 
     #[test]
     fn it_compiles_addition_between_label_and_result() {
-        let code = "let some_label; some_label + (2 + 3)";
+        let code = "let some_label = 2; some_label + (2 + 3)";
         let expression = parse(tokenize(code).unwrap()).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
@@ -166,6 +167,7 @@ add rax, 1"
             result,
             "\
 sub rsp, 8
+mov QWORD[rbp - 8], 2
 mov rax, 2 + 3
 add rax, QWORD[rbp - 8]
 add rsp, 8"
@@ -174,7 +176,7 @@ add rsp, 8"
 
     #[test]
     fn it_compiles_addition_between_two_labels() {
-        let code = "let label1; let label2; label1 + label2";
+        let code = "let label1 = 3; let label2 = 2; label1 + label2";
         let expression = parse(tokenize(code).unwrap()).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
@@ -183,6 +185,8 @@ add rsp, 8"
             result,
             "\
 sub rsp, 16
+mov QWORD[rbp - 8], 3
+mov QWORD[rbp - 16], 2
 mov rax, QWORD[rbp - 8]
 add rax, QWORD[rbp - 16]
 add rsp, 16"

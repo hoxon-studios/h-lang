@@ -11,19 +11,19 @@ pub fn parse_block(stack: &mut Vec<Expression>) -> Result<(), String> {
     match (left, right) {
         (Expression::Statement(left), Expression::Statement(right)) => {
             stack.push(Expression::Result(Box::new(Evaluation::Block(Block {
-                body: vec![left, right],
+                body: vec![*left, *right],
                 result: Expression::Unit,
             }))))
         }
         (Expression::Statement(left), right) => {
             stack.push(Expression::Result(Box::new(Evaluation::Block(Block {
-                body: vec![left],
+                body: vec![*left],
                 result: right,
             }))));
         }
         (Expression::Result(evaluation), Expression::Statement(right)) => match *evaluation {
             Evaluation::Block(mut block) => {
-                block.body.push(right);
+                block.body.push(*right);
                 stack.push(Expression::Result(Box::new(Evaluation::Block(block))));
             }
             _ => return Err("Invalid operand".to_string()),
@@ -46,14 +46,16 @@ mod tests {
     use crate::{
         frontend::tokenize,
         intermediate::{
-            expressions::{Addition, Block, Evaluation, Expression, LetStatement, Statement},
+            expressions::{
+                Addition, Assignment, Block, Evaluation, Expression, LetStatement, Statement,
+            },
             parse,
         },
     };
 
     #[test]
     fn it_parses_block() {
-        let code = "let some_var; let another_var";
+        let code = "let some_var = 1; let another_var = 2";
         let tokens = tokenize(code).unwrap();
         // ACT
         let result = parse(tokens).unwrap();
@@ -62,12 +64,14 @@ mod tests {
             result,
             Expression::Result(Box::new(Evaluation::Block(Block {
                 body: vec![
-                    Statement::Let(LetStatement {
-                        label: "some_var".to_string()
-                    }),
-                    Statement::Let(LetStatement {
-                        label: "another_var".to_string()
-                    })
+                    Statement::Let(LetStatement(Assignment {
+                        label: "some_var".to_string(),
+                        value: Expression::Constant("1".to_string())
+                    })),
+                    Statement::Let(LetStatement(Assignment {
+                        label: "another_var".to_string(),
+                        value: Expression::Constant("2".to_string())
+                    })),
                 ],
                 result: Expression::Unit
             })))
@@ -76,7 +80,7 @@ mod tests {
 
     #[test]
     fn it_parses_block_with_result() {
-        let code = "let some_var; 1 + 2";
+        let code = "let some_var = 1; some_var + 2";
         let tokens = tokenize(code).unwrap();
         // ACT
         let result = parse(tokens).unwrap();
@@ -84,11 +88,12 @@ mod tests {
         assert_eq!(
             result,
             Expression::Result(Box::new(Evaluation::Block(Block {
-                body: vec![Statement::Let(LetStatement {
-                    label: "some_var".to_string()
-                }),],
+                body: vec![Statement::Let(LetStatement(Assignment {
+                    label: "some_var".to_string(),
+                    value: Expression::Constant("1".to_string())
+                }))],
                 result: Expression::Result(Box::new(Evaluation::Addition(Addition {
-                    left: Expression::Constant("1".to_string()),
+                    left: Expression::Label("some_var".to_string()),
                     right: Expression::Constant("2".to_string())
                 })))
             })))

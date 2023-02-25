@@ -46,7 +46,7 @@ mod tests {
 
     #[test]
     fn it_compiles_block() {
-        let code = "let some_value; let another; some_value + 2";
+        let code = "let some_value = 1; let another = 2; some_value + 2";
         let expression = parse(tokenize(code).unwrap()).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
@@ -55,6 +55,8 @@ mod tests {
             result,
             "\
 sub rsp, 16
+mov QWORD[rbp - 8], 1
+mov QWORD[rbp - 16], 2
 mov rax, QWORD[rbp - 8]
 add rax, 2
 add rsp, 16"

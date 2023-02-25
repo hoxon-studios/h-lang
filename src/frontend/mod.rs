@@ -110,6 +110,8 @@ fn eat_operator(code: &str) -> Option<(&str, Operator)> {
         Some((code, Operator::LeftParenthesis))
     } else if let Some(code) = eat_token(code, ")") {
         Some((code, Operator::RightParenthesis))
+    } else if let Some(code) = eat_token(code, "=") {
+        Some((code, Operator::Operation(Operation::Assign)))
     } else if let Some(code) = eat_token(code, "+") {
         Some((code, Operator::Operation(Operation::Addition)))
     } else if let Some(code) = eat_token(code, ",") {
@@ -195,6 +197,24 @@ mod tests {
                 Token::Label("another_var"),
                 Token::Operation(Operation::Let),
                 Token::Operation(Operation::Sequence)
+            ]
+        );
+    }
+
+    #[test]
+    fn it_tokenize_assignment() {
+        let code = "variable = 1 + 2";
+        // ACT
+        let result = tokenize(code).unwrap();
+        // ASSERT
+        assert_eq!(
+            result,
+            vec![
+                Token::Label("variable"),
+                Token::Number("1"),
+                Token::Number("2"),
+                Token::Operation(Operation::Addition),
+                Token::Operation(Operation::Assign)
             ]
         );
     }
