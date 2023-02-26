@@ -1,6 +1,6 @@
 use crate::{
     backends::x86_64::{Symbol, X86_64},
-    intermediate::expressions::LetStatement,
+    parser::expressions::LetStatement,
 };
 
 impl X86_64 {

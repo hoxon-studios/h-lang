@@ -1,4 +1,4 @@
-use crate::intermediate::expressions::Expression;
+use crate::parser::expressions::Expression;
 
 mod evaluations;
 mod label;

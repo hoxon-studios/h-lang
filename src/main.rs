@@ -1,10 +1,10 @@
 use backends::x86_64::X86_64;
-use frontend::tokenize;
-use intermediate::parse;
+use parser::parse;
+use tokenizer::tokenize;
 
 mod backends;
-mod frontend;
-mod intermediate;
+mod parser;
+mod tokenizer;
 
 fn main() {
     let mut context = X86_64::init();

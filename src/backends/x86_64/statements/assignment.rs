@@ -1,6 +1,6 @@
 use crate::{
     backends::x86_64::X86_64,
-    intermediate::expressions::{Assignment, Expression},
+    parser::expressions::{Assignment, Expression},
 };
 
 impl X86_64 {
@@ -36,7 +36,7 @@ mov {label}, rax"
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, frontend::tokenize, intermediate::parse};
+    use crate::{backends::x86_64::X86_64, parser::parse, tokenizer::tokenize};
 
     #[test]
     fn it_compiles_assignment() {

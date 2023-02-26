@@ -22,11 +22,11 @@ pub fn parse_call(stack: &mut Vec<Expression>) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        frontend::tokenize,
-        intermediate::{
+        parser::{
             expressions::{Evaluation, Expression, ExpressionSet, FunctionCall},
             parse,
         },
+        tokenizer::tokenize,
     };
 
     #[test]

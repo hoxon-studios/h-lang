@@ -1,6 +1,6 @@
 use crate::{
     backends::x86_64::{Scope, X86_64},
-    intermediate::expressions::{Block, Expression},
+    parser::expressions::{Block, Expression},
 };
 
 impl X86_64 {
@@ -42,7 +42,7 @@ add rsp, {stack_size}"
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, frontend::tokenize, intermediate::parse};
+    use crate::{backends::x86_64::X86_64, parser::parse, tokenizer::tokenize};
 
     #[test]
     fn it_compiles_block() {

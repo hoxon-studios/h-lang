@@ -18,11 +18,11 @@ pub fn parse_addition(stack: &mut Vec<Expression>) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        frontend::tokenize,
-        intermediate::{
+        parser::{
             expressions::{Addition, Evaluation, Expression},
             parse,
         },
+        tokenizer::tokenize,
     };
 
     #[test]

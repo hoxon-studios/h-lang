@@ -137,7 +137,7 @@ fn eat_operator(code: &str) -> Option<(&str, Operator)> {
 
 #[cfg(test)]
 mod tests {
-    use crate::frontend::{
+    use crate::tokenizer::{
         tokenize,
         tokens::{Operation, Token},
     };

@@ -1,4 +1,4 @@
-use crate::intermediate::expressions::Statement;
+use crate::parser::expressions::Statement;
 
 mod assignment;
 mod let_statement;

@@ -28,11 +28,11 @@ pub fn parse_group(stack: &mut Vec<Expression>) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        frontend::tokenize,
-        intermediate::{
+        parser::{
             expressions::{Expression, ExpressionSet},
             parse,
         },
+        tokenizer::tokenize,
     };
 
     #[test]

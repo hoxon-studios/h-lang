@@ -44,13 +44,13 @@ pub fn parse_block(stack: &mut Vec<Expression>) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        frontend::tokenize,
-        intermediate::{
+        parser::{
             expressions::{
                 Addition, Assignment, Block, Evaluation, Expression, LetStatement, Statement,
             },
             parse,
         },
+        tokenizer::tokenize,
     };
 
     #[test]

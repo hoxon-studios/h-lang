@@ -18,11 +18,11 @@ pub fn parse_let_statement(stack: &mut Vec<Expression>) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        frontend::tokenize,
-        intermediate::{
+        parser::{
             expressions::{Assignment, Expression, LetStatement, Statement},
             parse,
         },
+        tokenizer::tokenize,
     };
 
     #[test]

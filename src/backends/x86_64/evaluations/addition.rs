@@ -1,6 +1,6 @@
 use crate::{
     backends::x86_64::X86_64,
-    intermediate::expressions::{Addition, Expression},
+    parser::expressions::{Addition, Expression},
 };
 
 impl X86_64 {
@@ -107,7 +107,7 @@ add rax, rdx"
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, frontend::tokenize, intermediate::parse};
+    use crate::{backends::x86_64::X86_64, parser::parse, tokenizer::tokenize};
 
     #[test]
     fn it_compiles_addition_between_two_constants() {

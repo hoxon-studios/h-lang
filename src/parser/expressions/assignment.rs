@@ -18,11 +18,11 @@ pub fn parse_assignment(stack: &mut Vec<Expression>) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        frontend::tokenize,
-        intermediate::{
+        parser::{
             expressions::{Addition, Assignment, Evaluation, Expression, Statement},
             parse,
         },
+        tokenizer::tokenize,
     };
 
     #[test]

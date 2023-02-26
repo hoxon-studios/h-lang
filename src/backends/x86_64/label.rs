@@ -18,7 +18,7 @@ impl X86_64 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, frontend::tokenize, intermediate::parse};
+    use crate::{backends::x86_64::X86_64, parser::parse, tokenizer::tokenize};
 
     #[test]
     fn it_compiles_label_stored_in_the_stack() {
