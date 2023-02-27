@@ -1,47 +1,52 @@
 use crate::{
     backends::x86_64::X86_64,
-    parser::expressions::{Assignment, Expression},
+    parser::tokens::{Assignment, Token, Value},
 };
 
 impl X86_64 {
     pub fn assignment(&mut self, assignment: &Assignment) -> String {
-        let label = self.label(assignment.label.as_str());
+        let label = match &*assignment.address {
+            Token::Declaration(declaration) => self.declaration(&declaration),
+            Token::Value(Value::Label(label)) => self.label(label),
+            Token::Value(_) | Token::Set(_) | Token::Statement(_) => {
+                panic!("Invalid operand")
+            }
+        };
 
         match &assignment.value {
-            Expression::Unit => format!(
+            Value::Unit => format!(
                 "\
 mov {label}, 0"
             ),
-            Expression::Constant(value) => format!(
+            Value::Constant(value) => format!(
                 "\
 mov {label}, {value}"
             ),
-            Expression::Label(value) => format!(
+            Value::Label(value) => format!(
                 "\
 mov rax, {value}
 mov {label}, rax"
             ),
-            Expression::Result(value) => {
-                let value = self.evaluation(&value);
+            Value::Result(value) => {
+                let value = self.expression(&value);
                 format!(
                     "\
 {value}
 mov {label}, rax"
                 )
             }
-            Expression::Statement(_) | Expression::Set(_) => panic!("Invalid operands"),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, parser::parse, tokenizer::tokenize};
+    use crate::{backends::x86_64::X86_64, parser::parse};
 
     #[test]
     fn it_compiles_assignment() {
         let code = "some_var = 1";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT

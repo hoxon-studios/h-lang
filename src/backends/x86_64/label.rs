@@ -18,12 +18,12 @@ impl X86_64 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, parser::parse, tokenizer::tokenize};
+    use crate::{backends::x86_64::X86_64, parser::parse};
 
     #[test]
     fn it_compiles_label_stored_in_the_stack() {
-        let code = "let some_label = 1; some_label";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let code = "some_label: usize = 1; some_label";
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
@@ -40,7 +40,7 @@ add rsp, 8"
     #[test]
     fn it_compiles_global_label() {
         let code = "some_label";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT

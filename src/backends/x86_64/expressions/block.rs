@@ -1,6 +1,6 @@
 use crate::{
     backends::x86_64::{Scope, X86_64},
-    parser::expressions::{Block, Expression},
+    parser::tokens::Block,
 };
 
 impl X86_64 {
@@ -14,12 +14,7 @@ impl X86_64 {
             .filter(|s| s != "")
             .collect::<Vec<String>>();
 
-        match &block.result {
-            Expression::Unit => {}
-            _ => {
-                body.push(self.compile(&block.result));
-            }
-        }
+        body.push(self.value(&block.result));
 
         let body = body.join("\n");
         let stack_size: usize = self
@@ -42,12 +37,12 @@ add rsp, {stack_size}"
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, parser::parse, tokenizer::tokenize};
+    use crate::{backends::x86_64::X86_64, parser::parse};
 
     #[test]
     fn it_compiles_block() {
-        let code = "let some_value = 1; let another = 2; some_value + 2";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let code = "some_value: usize = 1; another: usize = 2; some_value + 2";
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT

@@ -1,35 +1,104 @@
-use crate::tokenizer::tokens::{Operation, Token};
+use self::{cursor::*, operations::*, tokens::*};
 
-use self::expressions::{
-    addition::parse_addition, assignment::parse_assignment, block::parse_block, call::parse_call,
-    group::parse_group, let_statement::parse_let_statement, Expression, ExpressionSet,
-};
+pub mod cursor;
+pub mod operations;
+pub mod tokens;
 
-pub mod expressions;
+// This uses Shunting yard algorithm to parse the code
+pub fn parse(code: &str) -> Result<Token, String> {
+    let mut output: Vec<Token> = vec![];
+    let mut operators: Vec<Operator> = vec![];
 
-pub fn parse(tokens: Vec<Token>) -> Result<Expression, String> {
-    let mut stack: Vec<Expression> = vec![];
+    let mut cursor = code.clone();
+    'outer: loop {
+        cursor = skip_space(cursor);
+        if let Some(code) = eat_empty(cursor) {
+            output.push(Token::Value(Value::Unit));
+            cursor = code;
+        } else if let Some((code, operator)) = eat_operator(cursor) {
+            match &operator {
+                Operator::LeftParenthesis => {
+                    operators.push(operator);
+                }
+                Operator::RightParenthesis => {
+                    while let Some(operator) = operators.pop() {
+                        match operator {
+                            Operator::LeftParenthesis => break,
+                            Operator::Operation(operation) => {
+                                operation.apply(&mut output)?;
+                            }
+                            Operator::RightParenthesis => {
+                                return Err("Open parenthesis missing".to_string())
+                            }
+                        }
+                    }
+                }
+                Operator::Operation(operation) => loop {
+                    let pop = if let Some(stack) = operators.last() {
+                        match stack {
+                            Operator::LeftParenthesis => false,
+                            Operator::RightParenthesis => panic!("Invalid operator"),
+                            Operator::Operation(stack) => {
+                                let stack_precedence = stack.precedence();
+                                let current_precedence = operation.precedence();
+                                let left_associated = operation.left_associated();
 
-    for token in &tokens {
-        match token {
-            &Token::Number(value) => stack.push(Expression::Constant(value.to_string())),
-            &Token::Label(value) => stack.push(Expression::Label(value.to_string())),
-            Token::Empty => stack.push(Expression::Set(ExpressionSet(vec![]))),
-            Token::Operation(operation) => match operation {
-                Operation::Group => parse_group(&mut stack)?,
-                Operation::Addition => parse_addition(&mut stack)?,
-                Operation::Call => parse_call(&mut stack)?,
-                Operation::Let => parse_let_statement(&mut stack)?,
-                Operation::Assign => parse_assignment(&mut stack)?,
-                Operation::Sequence => parse_block(&mut stack)?,
-                _ => todo!(),
-            },
+                                (stack_precedence > current_precedence)
+                                    || (stack_precedence == current_precedence && left_associated)
+                            }
+                        }
+                    } else {
+                        false
+                    };
+
+                    if pop {
+                        match operators.pop().expect("Operator not found") {
+                            Operator::LeftParenthesis => panic!("Invalid operator"),
+                            Operator::RightParenthesis => panic!("Invalid operator"),
+                            Operator::Operation(operation) => {
+                                operation.apply(&mut output)?;
+                            }
+                        }
+                    } else {
+                        operators.push(operator.clone());
+                        break;
+                    }
+                },
+            }
+
+            cursor = code;
+        } else if let Some((code, number)) = eat_number(cursor) {
+            output.push(Token::Value(Value::Constant(number)));
+            cursor = code;
+        } else if let Some((code, label)) = eat_label(cursor) {
+            output.push(Token::Value(Value::Label(label)));
+            cursor = code;
+        } else {
+            break 'outer;
         }
     }
 
-    if stack.len() > 1 {
-        Err("Failed to parse expressions".to_string())
+    while let Some(operator) = operators.pop() {
+        match operator {
+            Operator::LeftParenthesis => return Err("Closing parenthesis missing".to_string()),
+            Operator::RightParenthesis => panic!("Invalid operator"),
+            Operator::Operation(operation) => {
+                operation.apply(&mut output)?;
+            }
+        }
+    }
+
+    return Ok(output.pop().expect("Result not found"));
+}
+
+pub fn eat_empty(code: &str) -> Option<&str> {
+    if let Some(code) = eat_token(skip_space(code), "(") {
+        if let Some(code) = eat_token(skip_space(code), ")") {
+            Some(code)
+        } else {
+            None
+        }
     } else {
-        Ok(stack.pop().expect("Failed to parse expressions"))
+        None
     }
 }

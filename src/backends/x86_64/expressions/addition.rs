@@ -1,19 +1,19 @@
 use crate::{
     backends::x86_64::X86_64,
-    parser::expressions::{Addition, Expression},
+    parser::tokens::{Addition, Value},
 };
 
 impl X86_64 {
     pub fn addition(&mut self, addition: &Addition) -> String {
         match &addition.left {
-            Expression::Constant(left) => match &addition.right {
-                Expression::Constant(right) => {
+            Value::Constant(left) => match &addition.right {
+                Value::Constant(right) => {
                     format!(
                         "\
 mov rax, {left} + {right}"
                     )
                 }
-                Expression::Label(right) => {
+                Value::Label(right) => {
                     let right = self.label(right);
                     format!(
                         "\
@@ -21,20 +21,18 @@ mov rax, {right}
 add rax, {left}"
                     )
                 }
-                Expression::Result(right) => {
-                    let right = self.evaluation(right);
+                Value::Result(right) => {
+                    let right = self.expression(right);
                     format!(
                         "\
 {right}
 add rax, {left}"
                     )
                 }
-                Expression::Set(_) | Expression::Statement(_) | Expression::Unit => {
-                    panic!("Invalid operand")
-                }
+                Value::Unit => panic!("Invalid operand"),
             },
-            Expression::Label(left) => match &addition.right {
-                Expression::Constant(right) => {
+            Value::Label(left) => match &addition.right {
+                Value::Constant(right) => {
                     let left = self.label(left);
                     format!(
                         "\
@@ -42,7 +40,7 @@ mov rax, {left}
 add rax, {right}"
                     )
                 }
-                Expression::Label(right) => {
+                Value::Label(right) => {
                     let left = self.label(left);
                     let right = self.label(right);
                     format!(
@@ -51,30 +49,28 @@ mov rax, {left}
 add rax, {right}"
                     )
                 }
-                Expression::Result(right) => {
+                Value::Result(right) => {
                     let left = self.label(left);
-                    let right = self.evaluation(right);
+                    let right = self.expression(right);
                     format!(
                         "\
 {right}
 add rax, {left}"
                     )
                 }
-                Expression::Set(_) | Expression::Statement(_) | Expression::Unit => {
-                    panic!("Invalid operand")
-                }
+                Value::Unit => panic!("Invalid operand"),
             },
-            Expression::Result(left) => match &addition.right {
-                Expression::Constant(right) => {
-                    let left = self.evaluation(left);
+            Value::Result(left) => match &addition.right {
+                Value::Constant(right) => {
+                    let left = self.expression(left);
                     format!(
                         "\
 {left}
 add rax, {right}"
                     )
                 }
-                Expression::Label(right) => {
-                    let left = self.evaluation(left);
+                Value::Label(right) => {
+                    let left = self.expression(left);
                     let right = self.label(right);
                     format!(
                         "\
@@ -82,9 +78,9 @@ add rax, {right}"
 add rax, {right}"
                     )
                 }
-                Expression::Result(right) => {
-                    let left = self.evaluation(left);
-                    let right = self.evaluation(right);
+                Value::Result(right) => {
+                    let left = self.expression(left);
+                    let right = self.expression(right);
                     format!(
                         "\
 {left}
@@ -94,25 +90,21 @@ pop rdx
 add rax, rdx"
                     )
                 }
-                Expression::Set(_) | Expression::Statement(_) | Expression::Unit => {
-                    panic!("Invalid operand")
-                }
+                Value::Unit => panic!("Invalid operand"),
             },
-            Expression::Set(_) | Expression::Statement(_) | Expression::Unit => {
-                panic!("Invalid operand")
-            }
+            Value::Unit => panic!("Invalid operand"),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, parser::parse, tokenizer::tokenize};
+    use crate::{backends::x86_64::X86_64, parser::parse};
 
     #[test]
     fn it_compiles_addition_between_two_constants() {
         let code = "1 + 2";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
@@ -125,8 +117,8 @@ mov rax, 1 + 2"
 
     #[test]
     fn it_compiles_addition_between_constant_and_label() {
-        let code = "let some_label = 1; 1 + some_label";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let code = "some_label: usize = 1; 1 + some_label";
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
@@ -144,7 +136,7 @@ add rsp, 8"
     #[test]
     fn it_compiles_addition_between_constant_and_result() {
         let code = "1 + (2 + 3)";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
@@ -158,8 +150,8 @@ add rax, 1"
 
     #[test]
     fn it_compiles_addition_between_label_and_result() {
-        let code = "let some_label = 2; some_label + (2 + 3)";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let code = "some_label: usize = 2; some_label + (2 + 3)";
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
@@ -176,8 +168,8 @@ add rsp, 8"
 
     #[test]
     fn it_compiles_addition_between_two_labels() {
-        let code = "let label1 = 3; let label2 = 2; label1 + label2";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let code = "label1: usize = 3; label2: usize = 2; label1 + label2";
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
@@ -196,7 +188,7 @@ add rsp, 16"
     #[test]
     fn it_compiles_addition_between_two_results() {
         let code = "(1 + 2) + (3 + 4)";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT

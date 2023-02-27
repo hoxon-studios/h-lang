@@ -1,8 +1,10 @@
-use crate::parser::expressions::Expression;
+use crate::parser::tokens::{Token, Value};
 
-mod evaluations;
+mod declaration;
+mod expressions;
 mod label;
 mod statements;
+mod value;
 
 #[derive(Debug)]
 pub struct X86_64 {
@@ -22,26 +24,29 @@ impl X86_64 {
     pub fn init() -> Self {
         Self { scopes: vec![] }
     }
-    pub fn compile(&mut self, expression: &Expression) -> String {
+    pub fn compile(&mut self, expression: &Token) -> String {
         match expression {
-            Expression::Constant(value) => format!(
-                "\
-mov rax, {value}"
-            ),
-            Expression::Label(label) => {
-                let label = self.label(label);
-                format!(
+            Token::Value(value) => match value {
+                Value::Constant(value) => format!(
                     "\
+    mov rax, {value}"
+                ),
+                Value::Label(label) => {
+                    let label = self.label(label);
+                    format!(
+                        "\
 mov rax, {label}"
-                )
-            }
-            Expression::Result(eval) => self.evaluation(eval),
-            Expression::Statement(statement) => self.statement(statement),
-            Expression::Unit => format!(
-                "\
+                    )
+                }
+                Value::Unit => format!(
+                    "\
 mov rax, 0"
-            ),
-            Expression::Set(_) => panic!("Sets cannot be compiled"),
+                ),
+                Value::Result(result) => self.expression(&*result),
+            },
+            Token::Statement(statement) => self.statement(statement),
+            Token::Set(_) => panic!("Sets cannot be compiled"),
+            Token::Declaration(_) => panic!("Declarations cannot be compiled"),
         }
     }
 }

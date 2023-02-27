@@ -1,10 +1,8 @@
 use backends::x86_64::X86_64;
 use parser::parse;
-use tokenizer::tokenize;
 
 mod backends;
 mod parser;
-mod tokenizer;
 
 fn main() {
     let mut context = X86_64::init();
@@ -16,9 +14,8 @@ fn main() {
         } else if buffer.starts_with(":clear") {
             context = X86_64::init();
         } else {
-            let tokens = tokenize(&buffer).unwrap();
-            let expression = parse(tokens).unwrap();
-            let output = context.compile(&expression);
+            let result = parse(&buffer).unwrap();
+            let output = context.compile(&result);
 
             println!("-CONTEXT--------------");
             println!("{:#?}", context);

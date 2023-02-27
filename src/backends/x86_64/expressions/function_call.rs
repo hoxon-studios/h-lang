@@ -1,6 +1,6 @@
 use crate::{
     backends::x86_64::X86_64,
-    parser::expressions::{Expression, FunctionCall},
+    parser::tokens::{FunctionCall, Value},
 };
 
 const LINUX_SYSCALL_CONVENTION: &[&'static str] = &["rax", "rdi", "rsi", "rdx", "r10", "r8", "r9"];
@@ -8,18 +8,17 @@ const SYSTEM_V_AMD64_ABI_CONVENTION: &[&'static str] = &["rdi", "rsi", "rdx", "r
 
 impl X86_64 {
     pub fn function_call(&mut self, function_call: &FunctionCall) -> String {
-        let convention = match function_call.label.as_str() {
+        let convention = match function_call.label {
             "syscall" => LINUX_SYSCALL_CONVENTION,
             _ => SYSTEM_V_AMD64_ABI_CONVENTION,
         };
 
         let evaluations = function_call
             .parameters
-            .0
             .iter()
             .filter_map(|p| match p {
-                Expression::Result(evaluation) => {
-                    let eval = self.evaluation(&evaluation);
+                Value::Result(evaluation) => {
+                    let eval = self.expression(&evaluation);
                     Some(format!(
                         "\
 {eval}
@@ -33,36 +32,31 @@ push rax"
 
         let parameters = function_call
             .parameters
-            .0
             .iter()
             .zip(convention.iter())
             .rev()
             .map(|(p, reg)| match p {
-                Expression::Unit => format!(
-                    "\
-mov {reg}, 0"
-                ),
-                Expression::Constant(constant) => format!(
+                Value::Constant(constant) => format!(
                     "\
 mov {reg}, {constant}"
                 ),
-                Expression::Label(label) => {
+                Value::Label(label) => {
                     let label = self.label(label);
                     format!(
                         "\
 mov {reg}, {label}"
                     )
                 }
-                Expression::Result(_) => format!(
+                Value::Result(_) => format!(
                     "\
 pop {reg}"
                 ),
-                Expression::Set(_) | Expression::Statement(_) => panic!("Invalid parameter"),
+                Value::Unit => panic!("Invalid operand"),
             })
             .collect::<Vec<String>>()
             .join("\n");
 
-        let function_call = match function_call.label.as_str() {
+        let function_call = match function_call.label {
             "syscall" => "syscall".to_string(),
             _ => format!("call {}", &function_call.label),
         };
@@ -78,12 +72,12 @@ pop {reg}"
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, parser::parse, tokenizer::tokenize};
+    use crate::{backends::x86_64::X86_64, parser::parse};
 
     #[test]
     fn it_compiles_function_call() {
         let code = "some_function$(1 + 2, 3, 4 + 5)";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
@@ -104,7 +98,7 @@ call some_function"
     #[test]
     fn it_compiles_system_call() {
         let code = "syscall$(0x01, 0, message, length)";
-        let expression = parse(tokenize(code).unwrap()).unwrap();
+        let expression = parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(&expression);
         // ASSERT
