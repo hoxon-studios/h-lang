@@ -1,6 +1,6 @@
 use self::{
     addition::parse_addition, assignment::parse_assignment, block::parse_block, call::parse_call,
-    declaration::parse_declaration, group::parse_group,
+    declaration::parse_declaration, function::parse_function, group::parse_group,
 };
 
 use super::{cursor::eat_token, tokens::Token};
@@ -10,6 +10,7 @@ pub mod assignment;
 pub mod block;
 pub mod call;
 pub mod declaration;
+pub mod function;
 pub mod group;
 
 #[derive(PartialEq, Debug, Clone)]
@@ -27,6 +28,7 @@ pub enum Operation {
     Assign,
     Addition,
     Call,
+    Function,
 }
 
 impl Operation {
@@ -38,6 +40,7 @@ impl Operation {
             Operation::Assign => parse_assignment(stack)?,
             Operation::Addition => parse_addition(stack)?,
             Operation::Call => parse_call(stack)?,
+            Operation::Function => parse_function(stack)?,
         }
 
         Ok(())
@@ -45,6 +48,7 @@ impl Operation {
 
     pub fn precedence(&self) -> usize {
         match self {
+            Operation::Function => 0,
             Operation::Sequence => 1,
             Operation::Assign => 2,
             Operation::Call => 3,
@@ -55,6 +59,7 @@ impl Operation {
     }
     pub fn left_associated(&self) -> bool {
         match self {
+            Operation::Function => true,
             Operation::Sequence => true,
             Operation::Let => true,
             Operation::Assign => false,
@@ -82,6 +87,8 @@ pub fn eat_operator(code: &str) -> Option<(&str, Operator)> {
         Some((code, Operator::Operation(Operation::Let)))
     } else if let Some(code) = eat_token(code, "$") {
         Some((code, Operator::Operation(Operation::Call)))
+    } else if let Some(code) = eat_token(code, "fn ") {
+        Some((code, Operator::Operation(Operation::Function)))
     } else {
         None
     }

@@ -4,8 +4,10 @@ use crate::{
 };
 
 impl X86_64 {
-    pub fn block(&mut self, block: &Block) -> String {
-        self.scopes.push(Scope { stack: vec![] });
+    pub fn block(&mut self, block: &Block, own_scope: bool) -> String {
+        if own_scope {
+            self.scopes.push(Scope { stack: vec![] });
+        }
 
         let mut body = block
             .body
@@ -17,21 +19,29 @@ impl X86_64 {
         body.push(self.value(&block.result));
 
         let body = body.join("\n");
-        let stack_size: usize = self
-            .scopes
-            .pop()
-            .expect("Scope not found")
-            .stack
-            .iter()
-            .map(|s| s.size)
-            .sum();
 
-        format!(
-            "\
+        if own_scope {
+            let stack_size: usize = self
+                .scopes
+                .pop()
+                .expect("Scope not found")
+                .stack
+                .iter()
+                .map(|s| s.size)
+                .sum();
+
+            format!(
+                "\
 sub rsp, {stack_size}
 {body}
 add rsp, {stack_size}"
-        )
+            )
+        } else {
+            format!(
+                "\
+{body}"
+            )
+        }
     }
 }
 

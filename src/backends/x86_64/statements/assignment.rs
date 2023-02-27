@@ -8,7 +8,7 @@ impl X86_64 {
         let label = match &*assignment.address {
             Token::Declaration(declaration) => self.declaration(&declaration),
             Token::Value(Value::Label(label)) => self.label(label),
-            Token::Value(_) | Token::Set(_) | Token::Statement(_) => {
+            Token::Value(_) | Token::Set(_) | Token::Statement(_) | Token::Definition(_) => {
                 panic!("Invalid operand")
             }
         };

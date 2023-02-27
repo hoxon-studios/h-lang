@@ -2,6 +2,7 @@
 pub enum Token<'a> {
     Value(Value<'a>),
     Set(Vec<Token<'a>>),
+    Definition(Definition<'a>),
     Declaration(Declaration<'a>),
     Statement(Statement<'a>),
 }
@@ -53,4 +54,16 @@ pub struct Block<'a> {
 pub struct Assignment<'a> {
     pub address: Box<Token<'a>>,
     pub value: Value<'a>,
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum Definition<'a> {
+    Function(Function<'a>),
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct Function<'a> {
+    pub label: &'a str,
+    pub parameters: Vec<Declaration<'a>>,
+    pub body: Block<'a>,
 }

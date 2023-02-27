@@ -1,6 +1,7 @@
 use crate::parser::tokens::{Token, Value};
 
 mod declaration;
+mod definitions;
 mod expressions;
 mod label;
 mod statements;
@@ -44,6 +45,7 @@ mov rax, 0"
                 ),
                 Value::Result(result) => self.expression(&*result),
             },
+            Token::Definition(definition) => self.definition(definition),
             Token::Statement(statement) => self.statement(statement),
             Token::Set(_) => panic!("Sets cannot be compiled"),
             Token::Declaration(_) => panic!("Declarations cannot be compiled"),

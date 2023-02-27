@@ -3,8 +3,10 @@ use crate::{
     parser::tokens::{FunctionCall, Value},
 };
 
-const LINUX_SYSCALL_CONVENTION: &[&'static str] = &["rax", "rdi", "rsi", "rdx", "r10", "r8", "r9"];
-const SYSTEM_V_AMD64_ABI_CONVENTION: &[&'static str] = &["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
+pub const LINUX_SYSCALL_CONVENTION: &[&'static str] =
+    &["rax", "rdi", "rsi", "rdx", "r10", "r8", "r9"];
+pub const SYSTEM_V_AMD64_ABI_CONVENTION: &[&'static str] =
+    &["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
 
 impl X86_64 {
     pub fn function_call(&mut self, function_call: &FunctionCall) -> String {
