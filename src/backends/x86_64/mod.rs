@@ -1,4 +1,4 @@
-use crate::parser::tokens::{Token, Value};
+use crate::parser::tokens::Token;
 
 mod declaration;
 mod definitions;
@@ -29,24 +29,7 @@ impl X86_64 {
         tokens
             .iter()
             .map(|t| match t {
-                Token::Value(value) => match value {
-                    Value::Constant(value) => format!(
-                        "\
-mov rax, {value}"
-                    ),
-                    Value::Label(label) => {
-                        let label = self.label(label);
-                        format!(
-                            "\
-mov rax, {label}"
-                        )
-                    }
-                    Value::Unit => format!(
-                        "\
-mov rax, 0"
-                    ),
-                    Value::Result(result) => self.expression(&*result),
-                },
+                Token::Value(value) => self.value(value),
                 Token::Definition(definition) => self.definition(definition),
                 Token::Statement(statement) => self.statement(statement),
                 Token::Set(_) | Token::Declaration(_) => {

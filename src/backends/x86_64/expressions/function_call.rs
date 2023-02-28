@@ -54,6 +54,13 @@ mov {reg}, {label}"
 pop {reg}"
                 ),
                 Value::Unit => panic!("Invalid operand"),
+                Value::Reference(label) => {
+                    let label = self.label(label);
+                    format!(
+                        "\
+lea {reg}, {label}"
+                    )
+                }
             })
             .collect::<Vec<String>>()
             .join("\n");

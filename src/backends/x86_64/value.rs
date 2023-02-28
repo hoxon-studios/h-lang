@@ -21,6 +21,13 @@ mov rax, {label}"
 mov rax, 0"
             ),
             Value::Result(result) => self.expression(&*result),
+            Value::Reference(label) => {
+                let label = self.label(label);
+                format!(
+                    "\
+lea rax, {label}"
+                )
+            }
         }
     }
 }

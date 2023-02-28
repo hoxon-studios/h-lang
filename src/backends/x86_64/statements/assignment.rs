@@ -35,6 +35,14 @@ mov {label}, rax"
 mov {label}, rax"
                 )
             }
+            Value::Reference(value) => {
+                let value = self.label(value);
+                format!(
+                    "\
+lea rax, {value}
+mov {label}, rax"
+                )
+            }
         }
     }
 }

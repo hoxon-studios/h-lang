@@ -29,7 +29,7 @@ add rax, {left}"
 add rax, {left}"
                     )
                 }
-                Value::Unit => panic!("Invalid operand"),
+                Value::Reference(_) | Value::Unit => panic!("Invalid operand"),
             },
             Value::Label(left) => match &addition.right {
                 Value::Constant(right) => {
@@ -58,7 +58,7 @@ add rax, {right}"
 add rax, {left}"
                     )
                 }
-                Value::Unit => panic!("Invalid operand"),
+                Value::Reference(_) | Value::Unit => panic!("Invalid operand"),
             },
             Value::Result(left) => match &addition.right {
                 Value::Constant(right) => {
@@ -90,9 +90,9 @@ pop rdx
 add rax, rdx"
                     )
                 }
-                Value::Unit => panic!("Invalid operand"),
+                Value::Reference(_) | Value::Unit => panic!("Invalid operand"),
             },
-            Value::Unit => panic!("Invalid operand"),
+            Value::Reference(_) | Value::Unit => panic!("Invalid operand"),
         }
     }
 }

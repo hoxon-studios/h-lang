@@ -11,6 +11,7 @@ pub enum Token<'a> {
 pub enum Value<'a> {
     Constant(&'a str),
     Label(&'a str),
+    Reference(&'a str),
     Unit,
     Result(Box<Expression<'a>>),
 }
