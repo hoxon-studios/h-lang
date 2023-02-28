@@ -70,4 +70,31 @@ mov rax, QWORD[rax + 0 * 8]
 add rsp, 16"
         );
     }
+
+    #[test]
+    fn it_compiles_dereference_of_reference() {
+        let code = "public fn some(x: &usize, y: usize) pointer: &usize = x; pointer#0";
+        let tokens = parse(code).unwrap();
+        // ACT
+        let result = X86_64::init().compile(tokens);
+        // ASSERT
+        assert_eq!(
+            result,
+            "\
+global some
+some:
+push rbp
+mov rbp, rsp
+sub rsp, 24
+mov QWORD[rbp - 8], rdi
+mov QWORD[rbp - 16], rsi
+mov rax, QWORD[rbp - 8]
+mov QWORD[rbp - 24], rax
+mov rax, QWORD[rbp - 24]
+mov rax, QWORD[rax + 0 * 8]
+add rsp, 24
+pop rbp
+ret"
+        )
+    }
 }

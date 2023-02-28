@@ -22,11 +22,14 @@ mov {label}, 0"
                 "\
 mov {label}, {value}"
             ),
-            Value::Label(value) => format!(
-                "\
+            Value::Label(value) => {
+                let value = self.label(value);
+                format!(
+                    "\
 mov rax, {value}
 mov {label}, rax"
-            ),
+                )
+            }
             Value::Result(value) => {
                 let value = self.expression(&value);
                 format!(
