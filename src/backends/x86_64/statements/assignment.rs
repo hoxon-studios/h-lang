@@ -46,9 +46,9 @@ mod tests {
     #[test]
     fn it_compiles_assignment() {
         let code = "some_var = 1";
-        let expression = parse(code).unwrap();
+        let tokens = parse(code).unwrap();
         // ACT
-        let result = X86_64::init().compile(&expression);
+        let result = X86_64::init().compile(tokens);
         // ASSERT
         assert_eq!(
             result,

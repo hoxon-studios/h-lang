@@ -52,9 +52,9 @@ mod tests {
     #[test]
     fn it_compiles_block() {
         let code = "some_value: usize = 1; another: usize = 2; some_value + 2";
-        let expression = parse(code).unwrap();
+        let tokens = parse(code).unwrap();
         // ACT
-        let result = X86_64::init().compile(&expression);
+        let result = X86_64::init().compile(tokens);
         // ASSERT
         assert_eq!(
             result,

@@ -23,9 +23,9 @@ mod tests {
     #[test]
     fn it_compiles_label_stored_in_the_stack() {
         let code = "some_label: usize = 1; some_label";
-        let expression = parse(code).unwrap();
+        let tokens = parse(code).unwrap();
         // ACT
-        let result = X86_64::init().compile(&expression);
+        let result = X86_64::init().compile(tokens);
         // ASSERT
         assert_eq!(
             result,
@@ -40,9 +40,9 @@ add rsp, 8"
     #[test]
     fn it_compiles_global_label() {
         let code = "some_label";
-        let expression = parse(code).unwrap();
+        let tokens = parse(code).unwrap();
         // ACT
-        let result = X86_64::init().compile(&expression);
+        let result = X86_64::init().compile(tokens);
         // ASSERT
         assert_eq!(
             result,

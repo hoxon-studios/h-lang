@@ -40,11 +40,11 @@ mod tests {
         // ASSERT
         assert_eq!(
             result,
-            Token::Set(vec![
+            vec![Token::Set(vec![
                 Token::Value(Value::Constant("1")),
                 Token::Value(Value::Constant("2")),
                 Token::Value(Value::Constant("3"))
-            ])
+            ])]
         );
     }
 
@@ -54,6 +54,6 @@ mod tests {
         // ACT
         let result = parse(code).unwrap();
         // ASSERT
-        assert_eq!(result, Token::Value(Value::Unit));
+        assert_eq!(result, vec![Token::Value(Value::Unit)]);
     }
 }

@@ -39,7 +39,7 @@ impl X86_64 {
             .map(|s| s.size)
             .sum();
 
-        format!(
+        let result = format!(
             "\
 {label}:
 push rbp
@@ -50,7 +50,17 @@ sub rsp, {stack_size}
 add rsp, {stack_size}
 pop rbp
 ret"
-        )
+        );
+
+        if function.export {
+            format!(
+                "\
+global {label}
+{result}"
+            )
+        } else {
+            result
+        }
     }
 }
 
@@ -64,9 +74,9 @@ mod tests {
             fn some(x: usize, y: usize)
                 a: usize = 3;
                 a + x + y";
-        let token = parse(code).unwrap();
+        let tokens = parse(code).unwrap();
         // ACT
-        let result = X86_64::init().compile(&token);
+        let result = X86_64::init().compile(tokens);
         // ASSERT
         assert_eq!(
             result,
@@ -82,6 +92,46 @@ mov rax, QWORD[rbp - 24]
 add rax, QWORD[rbp - 8]
 add rax, QWORD[rbp - 16]
 add rsp, 24
+pop rbp
+ret"
+        )
+    }
+
+    #[test]
+    fn it_compiles_two_function_definitions() {
+        let code = "\
+            public fn some(x: usize, y: usize)
+                x + y
+            private fn power(x: usize)
+                x + x";
+        let tokens = parse(code).unwrap();
+        // ACT
+        let result = X86_64::init().compile(tokens);
+        // ASSERT
+        assert_eq!(
+            result,
+            "\
+global some
+some:
+push rbp
+mov rbp, rsp
+sub rsp, 16
+mov QWORD[rbp - 8], rdi
+mov QWORD[rbp - 16], rsi
+mov rax, QWORD[rbp - 8]
+add rax, QWORD[rbp - 16]
+add rsp, 16
+pop rbp
+ret
+
+power:
+push rbp
+mov rbp, rsp
+sub rsp, 8
+mov QWORD[rbp - 8], rdi
+mov rax, QWORD[rbp - 8]
+add rax, QWORD[rbp - 8]
+add rsp, 8
 pop rbp
 ret"
         )

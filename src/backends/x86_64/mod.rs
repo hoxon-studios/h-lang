@@ -25,30 +25,35 @@ impl X86_64 {
     pub fn init() -> Self {
         Self { scopes: vec![] }
     }
-    pub fn compile(&mut self, expression: &Token) -> String {
-        match expression {
-            Token::Value(value) => match value {
-                Value::Constant(value) => format!(
-                    "\
-    mov rax, {value}"
-                ),
-                Value::Label(label) => {
-                    let label = self.label(label);
-                    format!(
+    pub fn compile(&mut self, tokens: Vec<Token>) -> String {
+        tokens
+            .iter()
+            .map(|t| match t {
+                Token::Value(value) => match value {
+                    Value::Constant(value) => format!(
                         "\
+mov rax, {value}"
+                    ),
+                    Value::Label(label) => {
+                        let label = self.label(label);
+                        format!(
+                            "\
 mov rax, {label}"
-                    )
-                }
-                Value::Unit => format!(
-                    "\
+                        )
+                    }
+                    Value::Unit => format!(
+                        "\
 mov rax, 0"
-                ),
-                Value::Result(result) => self.expression(&*result),
-            },
-            Token::Definition(definition) => self.definition(definition),
-            Token::Statement(statement) => self.statement(statement),
-            Token::Set(_) => panic!("Sets cannot be compiled"),
-            Token::Declaration(_) => panic!("Declarations cannot be compiled"),
-        }
+                    ),
+                    Value::Result(result) => self.expression(&*result),
+                },
+                Token::Definition(definition) => self.definition(definition),
+                Token::Statement(statement) => self.statement(statement),
+                Token::Set(_) | Token::Declaration(_) => {
+                    panic!("Token cannot be compiled")
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("\n\n")
     }
 }

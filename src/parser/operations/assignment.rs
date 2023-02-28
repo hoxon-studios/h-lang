@@ -31,7 +31,7 @@ mod tests {
         // ASSERT
         assert_eq!(
             result,
-            Token::Statement(Statement::Assignment(Assignment {
+            vec![Token::Statement(Statement::Assignment(Assignment {
                 address: Box::new(Token::Declaration(Declaration {
                     label: "variable",
                     _type: "usize"
@@ -40,7 +40,7 @@ mod tests {
                     left: Value::Constant("1"),
                     right: Value::Constant("2")
                 })))
-            }))
+            }))]
         );
     }
 }

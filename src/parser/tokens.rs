@@ -63,7 +63,13 @@ pub enum Definition<'a> {
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct Function<'a> {
+    pub export: bool,
     pub label: &'a str,
     pub parameters: Vec<Declaration<'a>>,
     pub body: Block<'a>,
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct Export<'a> {
+    pub definition: Definition<'a>,
 }

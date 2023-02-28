@@ -30,10 +30,12 @@ mod tests {
         // ASSERT
         assert_eq!(
             result,
-            Token::Value(Value::Result(Box::new(Expression::Addition(Addition {
-                left: Value::Constant("1"),
-                right: Value::Constant("2")
-            }))))
+            vec![Token::Value(Value::Result(Box::new(Expression::Addition(
+                Addition {
+                    left: Value::Constant("1"),
+                    right: Value::Constant("2")
+                }
+            ))))]
         );
     }
 }

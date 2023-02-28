@@ -60,25 +60,27 @@ mod tests {
         // ASSERT
         assert_eq!(
             result,
-            Token::Value(Value::Result(Box::new(Expression::Block(Block {
-                body: vec![
-                    Statement::Assignment(Assignment {
-                        address: Box::new(Token::Declaration(Declaration {
-                            label: "some_var",
-                            _type: "usize"
-                        })),
-                        value: Value::Constant("1")
-                    }),
-                    Statement::Assignment(Assignment {
-                        address: Box::new(Token::Declaration(Declaration {
-                            label: "another_var",
-                            _type: "usize"
-                        })),
-                        value: Value::Constant("2")
-                    })
-                ],
-                result: Value::Unit
-            }))))
+            vec![Token::Value(Value::Result(Box::new(Expression::Block(
+                Block {
+                    body: vec![
+                        Statement::Assignment(Assignment {
+                            address: Box::new(Token::Declaration(Declaration {
+                                label: "some_var",
+                                _type: "usize"
+                            })),
+                            value: Value::Constant("1")
+                        }),
+                        Statement::Assignment(Assignment {
+                            address: Box::new(Token::Declaration(Declaration {
+                                label: "another_var",
+                                _type: "usize"
+                            })),
+                            value: Value::Constant("2")
+                        })
+                    ],
+                    result: Value::Unit
+                }
+            ))))]
         );
     }
 
@@ -90,28 +92,30 @@ mod tests {
         // ASSERT
         assert_eq!(
             result,
-            Token::Value(Value::Result(Box::new(Expression::Block(Block {
-                body: vec![
-                    Statement::Assignment(Assignment {
-                        address: Box::new(Token::Declaration(Declaration {
-                            label: "some_var",
-                            _type: "usize"
-                        })),
-                        value: Value::Constant("1")
-                    }),
-                    Statement::Assignment(Assignment {
-                        address: Box::new(Token::Declaration(Declaration {
-                            label: "another",
-                            _type: "usize"
-                        })),
-                        value: Value::Constant("2")
-                    })
-                ],
-                result: Value::Result(Box::new(Expression::Addition(Addition {
-                    left: Value::Label("some_var"),
-                    right: Value::Label("another")
-                })))
-            }))))
+            vec![Token::Value(Value::Result(Box::new(Expression::Block(
+                Block {
+                    body: vec![
+                        Statement::Assignment(Assignment {
+                            address: Box::new(Token::Declaration(Declaration {
+                                label: "some_var",
+                                _type: "usize"
+                            })),
+                            value: Value::Constant("1")
+                        }),
+                        Statement::Assignment(Assignment {
+                            address: Box::new(Token::Declaration(Declaration {
+                                label: "another",
+                                _type: "usize"
+                            })),
+                            value: Value::Constant("2")
+                        })
+                    ],
+                    result: Value::Result(Box::new(Expression::Addition(Addition {
+                        left: Value::Label("some_var"),
+                        right: Value::Label("another")
+                    })))
+                }
+            ))))]
         );
     }
 }

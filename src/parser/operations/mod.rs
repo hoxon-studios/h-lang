@@ -1,6 +1,7 @@
 use self::{
     addition::parse_addition, assignment::parse_assignment, block::parse_block, call::parse_call,
     declaration::parse_declaration, function::parse_function, group::parse_group,
+    visibility::parse_visibility,
 };
 
 use super::{cursor::eat_token, tokens::Token};
@@ -12,6 +13,7 @@ pub mod call;
 pub mod declaration;
 pub mod function;
 pub mod group;
+pub mod visibility;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Operator {
@@ -29,11 +31,13 @@ pub enum Operation {
     Addition,
     Call,
     Function,
+    Visibility { export: bool },
 }
 
 impl Operation {
     pub fn apply(&self, stack: &mut Vec<Token>) -> Result<(), String> {
         match self {
+            Operation::Visibility { export } => parse_visibility(stack, *export)?,
             Operation::Let => parse_declaration(stack)?,
             Operation::Group => parse_group(stack)?,
             Operation::Sequence => parse_block(stack)?,
@@ -48,17 +52,19 @@ impl Operation {
 
     pub fn precedence(&self) -> usize {
         match self {
-            Operation::Function => 0,
-            Operation::Sequence => 1,
-            Operation::Assign => 2,
-            Operation::Call => 3,
-            Operation::Group => 4,
-            Operation::Let => 5,
-            Operation::Addition => 6,
+            Operation::Visibility { .. } => 0,
+            Operation::Function => 1,
+            Operation::Sequence => 2,
+            Operation::Assign => 3,
+            Operation::Call => 4,
+            Operation::Group => 5,
+            Operation::Let => 6,
+            Operation::Addition => 7,
         }
     }
     pub fn left_associated(&self) -> bool {
         match self {
+            Operation::Visibility { .. } => true,
             Operation::Function => true,
             Operation::Sequence => true,
             Operation::Let => true,
@@ -89,6 +95,16 @@ pub fn eat_operator(code: &str) -> Option<(&str, Operator)> {
         Some((code, Operator::Operation(Operation::Call)))
     } else if let Some(code) = eat_token(code, "fn ") {
         Some((code, Operator::Operation(Operation::Function)))
+    } else if let Some(code) = eat_token(code, "public ") {
+        Some((
+            code,
+            Operator::Operation(Operation::Visibility { export: true }),
+        ))
+    } else if let Some(code) = eat_token(code, "private ") {
+        Some((
+            code,
+            Operator::Operation(Operation::Visibility { export: false }),
+        ))
     } else {
         None
     }

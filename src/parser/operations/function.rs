@@ -38,6 +38,7 @@ pub fn parse_function(stack: &mut Vec<Token>) -> Result<(), String> {
     };
 
     stack.push(Token::Definition(Definition::Function(Function {
+        export: false,
         label,
         parameters,
         body,
@@ -67,7 +68,8 @@ mod tests {
         // ASSERT
         assert_eq!(
             result,
-            Token::Definition(Definition::Function(Function {
+            vec![Token::Definition(Definition::Function(Function {
+                export: false,
                 label: "some",
                 parameters: vec![
                     Declaration {
@@ -95,7 +97,7 @@ mod tests {
                         right: Value::Label("y")
                     })))
                 }
-            }))
+            }))]
         );
     }
 }

@@ -40,16 +40,16 @@ mod tests {
         // ASSERT
         assert_eq!(
             result,
-            Token::Value(Value::Result(Box::new(Expression::FunctionCall(
-                FunctionCall {
+            vec![Token::Value(Value::Result(Box::new(
+                Expression::FunctionCall(FunctionCall {
                     label: "some_func",
                     parameters: vec![
                         Value::Constant("1"),
                         Value::Constant("2"),
                         Value::Constant("3")
                     ]
-                }
-            ))))
+                })
+            )))]
         );
     }
 }

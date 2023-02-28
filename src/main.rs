@@ -14,8 +14,8 @@ fn main() {
         } else if buffer.starts_with(":clear") {
             context = X86_64::init();
         } else {
-            let result = parse(&buffer).unwrap();
-            let output = context.compile(&result);
+            let tokens = parse(&buffer).unwrap();
+            let output = context.compile(tokens);
 
             println!("-CONTEXT--------------");
             println!("{:#?}", context);

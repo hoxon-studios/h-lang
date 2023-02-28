@@ -5,7 +5,7 @@ pub mod operations;
 pub mod tokens;
 
 // This uses Shunting yard algorithm to parse the code
-pub fn parse(code: &str) -> Result<Token, String> {
+pub fn parse(code: &str) -> Result<Vec<Token>, String> {
     let mut output: Vec<Token> = vec![];
     let mut operators: Vec<Operator> = vec![];
 
@@ -88,7 +88,7 @@ pub fn parse(code: &str) -> Result<Token, String> {
         }
     }
 
-    return Ok(output.pop().expect("Result not found"));
+    return Ok(output);
 }
 
 pub fn eat_empty(code: &str) -> Option<&str> {

@@ -28,10 +28,10 @@ mod tests {
         // ASSERT
         assert_eq!(
             result,
-            Token::Declaration(Declaration {
+            vec![Token::Declaration(Declaration {
                 label: "some_var",
                 _type: "usize"
-            }),
+            })],
         );
     }
 }
