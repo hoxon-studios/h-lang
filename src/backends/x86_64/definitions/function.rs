@@ -39,8 +39,9 @@ impl X86_64 {
             .map(|s| s.size)
             .sum();
 
-        let result = format!(
-            "\
+        let result = if stack_size > 0 {
+            format!(
+                "\
 {label}:
 push rbp
 mov rbp, rsp
@@ -50,7 +51,19 @@ sub rsp, {stack_size}
 add rsp, {stack_size}
 pop rbp
 ret"
-        );
+            )
+        } else {
+            format!(
+                "\
+{label}:
+push rbp
+mov rbp, rsp
+{parameters}
+{body}
+pop rbp
+ret"
+            )
+        };
 
         if function.export {
             format!(

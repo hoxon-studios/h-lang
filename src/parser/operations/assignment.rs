@@ -20,7 +20,9 @@ pub fn parse_assignment(stack: &mut Vec<Token>) -> Result<(), String> {
 mod tests {
     use crate::parser::{
         parse,
-        tokens::{Addition, Assignment, Declaration, Expression, Statement, Token, Value},
+        tokens::{
+            Addition, Assignment, Declaration, Expression, LabelType, Statement, Token, Value,
+        },
     };
 
     #[test]
@@ -34,7 +36,7 @@ mod tests {
             vec![Token::Statement(Statement::Assignment(Assignment {
                 address: Box::new(Token::Declaration(Declaration {
                     label: "variable",
-                    _type: "usize"
+                    _type: LabelType::Usize
                 })),
                 value: Value::Result(Box::new(Expression::Addition(Addition {
                     left: Value::Constant("1"),

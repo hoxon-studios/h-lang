@@ -52,8 +52,8 @@ mod tests {
     use crate::parser::{
         parse,
         tokens::{
-            Addition, Assignment, Block, Declaration, Definition, Expression, Function, Statement,
-            Token, Value,
+            Addition, Assignment, Block, Declaration, Definition, Expression, Function, LabelType,
+            Statement, Token, Value,
         },
     };
 
@@ -74,18 +74,18 @@ mod tests {
                 parameters: vec![
                     Declaration {
                         label: "x",
-                        _type: "usize",
+                        _type: LabelType::Usize,
                     },
                     Declaration {
                         label: "y",
-                        _type: "usize"
+                        _type: LabelType::Usize
                     }
                 ],
                 body: Block {
                     body: vec![Statement::Assignment(Assignment {
                         address: Box::new(Token::Declaration(Declaration {
                             label: "a",
-                            _type: "usize"
+                            _type: LabelType::Usize
                         })),
                         value: Value::Constant("3")
                     })],

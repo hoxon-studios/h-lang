@@ -18,7 +18,12 @@ pub enum Value<'a> {
 #[derive(PartialEq, Debug, Clone)]
 pub struct Declaration<'a> {
     pub label: &'a str,
-    pub _type: &'a str,
+    pub _type: LabelType,
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub enum LabelType {
+    Usize,
 }
 
 #[derive(PartialEq, Debug, Clone)]

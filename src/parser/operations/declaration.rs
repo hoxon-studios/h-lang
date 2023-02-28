@@ -1,4 +1,4 @@
-use crate::parser::tokens::{Declaration, Token, Value};
+use crate::parser::tokens::{Declaration, LabelType, Token, Value};
 
 pub fn parse_declaration(stack: &mut Vec<Token>) -> Result<(), String> {
     let Some(Token::Value(Value::Label(_type))) = stack.pop() else {
@@ -6,6 +6,11 @@ pub fn parse_declaration(stack: &mut Vec<Token>) -> Result<(), String> {
     };
     let Some(Token::Value(Value::Label(label))) = stack.pop() else {
         return Err("Invalid operand".to_string());
+    };
+
+    let _type = match _type {
+        "usize" => LabelType::Usize,
+        _ => return Err("Invalid operand".to_string()),
     };
 
     stack.push(Token::Declaration(Declaration { label, _type }));
@@ -17,7 +22,7 @@ pub fn parse_declaration(stack: &mut Vec<Token>) -> Result<(), String> {
 mod tests {
     use crate::parser::{
         parse,
-        tokens::{Declaration, Token},
+        tokens::{Declaration, LabelType, Token},
     };
 
     #[test]
@@ -30,7 +35,7 @@ mod tests {
             result,
             vec![Token::Declaration(Declaration {
                 label: "some_var",
-                _type: "usize"
+                _type: LabelType::Usize
             })],
         );
     }

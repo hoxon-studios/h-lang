@@ -49,7 +49,10 @@ pub fn parse_block(stack: &mut Vec<Token>) -> Result<(), String> {
 mod tests {
     use crate::parser::{
         parse,
-        tokens::{Addition, Assignment, Block, Declaration, Expression, Statement, Token, Value},
+        tokens::{
+            Addition, Assignment, Block, Declaration, Expression, LabelType, Statement, Token,
+            Value,
+        },
     };
 
     #[test]
@@ -66,14 +69,14 @@ mod tests {
                         Statement::Assignment(Assignment {
                             address: Box::new(Token::Declaration(Declaration {
                                 label: "some_var",
-                                _type: "usize"
+                                _type: LabelType::Usize
                             })),
                             value: Value::Constant("1")
                         }),
                         Statement::Assignment(Assignment {
                             address: Box::new(Token::Declaration(Declaration {
                                 label: "another_var",
-                                _type: "usize"
+                                _type: LabelType::Usize
                             })),
                             value: Value::Constant("2")
                         })
@@ -98,14 +101,14 @@ mod tests {
                         Statement::Assignment(Assignment {
                             address: Box::new(Token::Declaration(Declaration {
                                 label: "some_var",
-                                _type: "usize"
+                                _type: LabelType::Usize
                             })),
                             value: Value::Constant("1")
                         }),
                         Statement::Assignment(Assignment {
                             address: Box::new(Token::Declaration(Declaration {
                                 label: "another",
-                                _type: "usize"
+                                _type: LabelType::Usize
                             })),
                             value: Value::Constant("2")
                         })
