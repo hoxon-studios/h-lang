@@ -36,6 +36,7 @@ mod tests {
             vec![Token::Statement(Statement::Assignment(Assignment {
                 address: Box::new(Token::Declaration(Declaration {
                     label: "variable",
+                    pointer: false,
                     _type: LabelType::Usize
                 })),
                 value: Value::Result(Box::new(Expression::Addition(Addition {

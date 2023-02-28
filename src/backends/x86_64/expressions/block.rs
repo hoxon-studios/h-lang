@@ -27,7 +27,7 @@ impl X86_64 {
                 .expect("Scope not found")
                 .stack
                 .iter()
-                .map(|s| s.size)
+                .map(|s| s.size())
                 .sum();
 
             format!(

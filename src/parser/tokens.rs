@@ -17,8 +17,15 @@ pub enum Value<'a> {
 }
 
 #[derive(PartialEq, Debug, Clone)]
+pub struct Dereference<'a> {
+    pub label: &'a str,
+    pub index: Box<Value<'a>>,
+}
+
+#[derive(PartialEq, Debug, Clone)]
 pub struct Declaration<'a> {
     pub label: &'a str,
+    pub pointer: bool,
     pub _type: LabelType,
 }
 
@@ -37,6 +44,7 @@ pub enum Expression<'a> {
     Block(Block<'a>),
     Addition(Addition<'a>),
     FunctionCall(FunctionCall<'a>),
+    Dereference(Dereference<'a>),
 }
 
 #[derive(PartialEq, Debug, Clone)]

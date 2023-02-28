@@ -10,10 +10,7 @@ impl X86_64 {
         let symbols = function
             .parameters
             .iter()
-            .map(|p| Symbol {
-                name: p.label.to_string(),
-                size: 8,
-            })
+            .map(|p| Self::to_symbol(p))
             .collect::<Vec<Symbol>>();
         self.scopes.push(Scope { stack: symbols });
 
@@ -36,7 +33,7 @@ impl X86_64 {
             .expect("Scope not found")
             .stack
             .iter()
-            .map(|s| s.size)
+            .map(|s| s.size())
             .sum();
 
         let result = if stack_size > 0 {

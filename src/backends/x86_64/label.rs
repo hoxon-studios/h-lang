@@ -5,7 +5,8 @@ impl X86_64 {
         let mut position = 0;
         for scope in self.scopes.iter() {
             for symbol in &scope.stack {
-                position += symbol.size;
+                let size = symbol.size();
+                position += size;
                 if symbol.name == label {
                     return format!("QWORD[rbp - {position}]");
                 }

@@ -69,6 +69,7 @@ mod tests {
                         Statement::Assignment(Assignment {
                             address: Box::new(Token::Declaration(Declaration {
                                 label: "some_var",
+                                pointer: false,
                                 _type: LabelType::Usize
                             })),
                             value: Value::Constant("1")
@@ -76,6 +77,7 @@ mod tests {
                         Statement::Assignment(Assignment {
                             address: Box::new(Token::Declaration(Declaration {
                                 label: "another_var",
+                                pointer: false,
                                 _type: LabelType::Usize
                             })),
                             value: Value::Constant("2")
@@ -101,6 +103,7 @@ mod tests {
                         Statement::Assignment(Assignment {
                             address: Box::new(Token::Declaration(Declaration {
                                 label: "some_var",
+                                pointer: false,
                                 _type: LabelType::Usize
                             })),
                             value: Value::Constant("1")
@@ -108,6 +111,7 @@ mod tests {
                         Statement::Assignment(Assignment {
                             address: Box::new(Token::Declaration(Declaration {
                                 label: "another",
+                                pointer: false,
                                 _type: LabelType::Usize
                             })),
                             value: Value::Constant("2")

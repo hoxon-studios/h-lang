@@ -74,10 +74,12 @@ mod tests {
                 parameters: vec![
                     Declaration {
                         label: "x",
+                        pointer: false,
                         _type: LabelType::Usize,
                     },
                     Declaration {
                         label: "y",
+                        pointer: false,
                         _type: LabelType::Usize
                     }
                 ],
@@ -85,6 +87,7 @@ mod tests {
                     body: vec![Statement::Assignment(Assignment {
                         address: Box::new(Token::Declaration(Declaration {
                             label: "a",
+                            pointer: false,
                             _type: LabelType::Usize
                         })),
                         value: Value::Constant("3")

@@ -29,6 +29,7 @@ mod tests {
                     body: vec![Statement::Assignment(Assignment {
                         address: Box::new(Token::Declaration(Declaration {
                             label: "some_var",
+                            pointer: false,
                             _type: LabelType::Usize
                         })),
                         value: Value::Constant("1")

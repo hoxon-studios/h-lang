@@ -4,6 +4,7 @@ mod declaration;
 mod definitions;
 mod expressions;
 mod label;
+mod pointer;
 mod statements;
 mod value;
 
@@ -18,8 +19,24 @@ pub struct Scope {
 #[derive(Debug)]
 pub struct Symbol {
     name: String,
-    size: usize,
+    _type: SymbolType,
 }
+impl Symbol {
+    pub fn size(&self) -> usize {
+        match self._type {
+            SymbolType::Value(size) => size,
+            SymbolType::Pointer(_) => USIZE,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum SymbolType {
+    Value(usize),
+    Pointer(usize),
+}
+
+const USIZE: usize = 8;
 
 impl X86_64 {
     pub fn init() -> Self {
