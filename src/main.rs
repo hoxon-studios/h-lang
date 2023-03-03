@@ -1,5 +1,6 @@
 use backends::x86_64::X86_64;
-use parser::parse;
+
+use crate::parser::Parser;
 
 mod backends;
 mod parser;
@@ -14,7 +15,7 @@ fn main() {
         } else if buffer.starts_with(":clear") {
             context = X86_64::init();
         } else {
-            let tokens = parse(&buffer).unwrap();
+            let tokens = Parser::parse(&buffer).unwrap();
             let output = context.compile(tokens);
 
             println!("-CONTEXT--------------");

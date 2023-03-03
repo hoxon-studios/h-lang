@@ -1,60 +1,66 @@
-use crate::parser::tokens::{Block, Declaration, Definition, Expression, Function, Token, Value};
+use crate::parser::{
+    tokens::{Block, Declaration, Definition, Expression, Function, Token, Value},
+    Parser,
+};
 
-pub fn parse_function(stack: &mut Vec<Token>) -> Result<(), String> {
-    let Some(Token::Value(body)) = stack.pop() else {
-        return Err("Invalid operand".to_string());
-    };
-    let body = match &body {
-        Value::Result(result) => match &**result {
-            Expression::Block(body) => body.clone(),
+impl<'a> Parser<'a> {
+    pub fn parse_function(&mut self) -> Result<(), String> {
+        let Some(Token::Value(body)) = self.output.pop() else {
+            return Err("Invalid operand".to_string());
+        };
+        let body = match &body {
+            Value::Result(result) => match &**result {
+                Expression::Block(body) => body.clone(),
+                _ => Block {
+                    body: vec![],
+                    result: body.clone(),
+                },
+            },
             _ => Block {
                 body: vec![],
                 result: body.clone(),
             },
-        },
-        _ => Block {
-            body: vec![],
-            result: body.clone(),
-        },
-    };
+        };
 
-    let Some(parameters) = stack.pop() else {
-        return Err("Invalid operand".to_string());
-    };
-    let parameters = match parameters {
-        Token::Set(parameters) => parameters
-            .iter()
-            .map(|p| match p {
-                Token::Declaration(declaration) => declaration.clone(),
-                _ => panic!("Invalid operand"),
-            })
-            .collect::<Vec<Declaration>>(),
-        Token::Value(Value::Unit) => vec![],
-        Token::Declaration(declaration) => vec![declaration],
-        _ => return Err("Invalid operand".to_string()),
-    };
-    let Some(Token::Value(Value::Label(label))) = stack.pop() else {
-        return Err("Invalid operand".to_string());
-    };
+        let Some(parameters) = self.output.pop() else {
+            return Err("Invalid operand".to_string());
+        };
+        let parameters = match parameters {
+            Token::Set(parameters) => parameters
+                .iter()
+                .map(|p| match p {
+                    Token::Declaration(declaration) => declaration.clone(),
+                    _ => panic!("Invalid operand"),
+                })
+                .collect::<Vec<Declaration>>(),
+            Token::Value(Value::Unit) => vec![],
+            Token::Declaration(declaration) => vec![declaration],
+            _ => return Err("Invalid operand".to_string()),
+        };
+        let Some(Token::Value(Value::Label(label))) = self.output.pop() else {
+            return Err("Invalid operand".to_string());
+        };
 
-    stack.push(Token::Definition(Definition::Function(Function {
-        export: false,
-        label,
-        parameters,
-        body,
-    })));
+        self.output
+            .push(Token::Definition(Definition::Function(Function {
+                export: false,
+                label,
+                parameters,
+                body,
+            })));
 
-    Ok(())
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::parser::{
-        parse,
         tokens::{
             Addition, Assignment, Block, Declaration, Definition, Expression, Function, LabelType,
             Statement, Token, Value,
         },
+        Parser,
     };
 
     #[test]
@@ -64,7 +70,7 @@ mod tests {
                 a: usize = 3;
                 a + x + y";
         // ACT
-        let result = parse(code).unwrap();
+        let result = Parser::parse(code).unwrap();
         // ASSERT
         assert_eq!(
             result,

@@ -99,12 +99,12 @@ add rax, rdx"
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, parser::parse};
+    use crate::{backends::x86_64::X86_64, parser::Parser};
 
     #[test]
     fn it_compiles_addition_between_two_constants() {
         let code = "1 + 2";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT
@@ -118,7 +118,7 @@ mov rax, 1 + 2"
     #[test]
     fn it_compiles_addition_between_constant_and_label() {
         let code = "some_label: usize = 1; 1 + some_label";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT
@@ -136,7 +136,7 @@ add rsp, 8"
     #[test]
     fn it_compiles_addition_between_constant_and_result() {
         let code = "1 + (2 + 3)";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT
@@ -151,7 +151,7 @@ add rax, 1"
     #[test]
     fn it_compiles_addition_between_label_and_result() {
         let code = "some_label: usize = 2; some_label + (2 + 3)";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT
@@ -169,7 +169,7 @@ add rsp, 8"
     #[test]
     fn it_compiles_addition_between_two_labels() {
         let code = "label1: usize = 3; label2: usize = 2; label1 + label2";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT
@@ -188,7 +188,7 @@ add rsp, 16"
     #[test]
     fn it_compiles_addition_between_two_results() {
         let code = "(1 + 2) + (3 + 4)";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT

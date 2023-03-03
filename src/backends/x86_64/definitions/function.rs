@@ -76,7 +76,7 @@ global {label}
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, parser::parse};
+    use crate::{backends::x86_64::X86_64, parser::Parser};
 
     #[test]
     fn it_compiles_a_function_definition() {
@@ -84,7 +84,7 @@ mod tests {
             fn some(x: usize, y: usize)
                 a: usize = 3;
                 a + x + y";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT
@@ -114,7 +114,7 @@ ret"
                 x + y
             private fn power(x: usize)
                 x + x";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT

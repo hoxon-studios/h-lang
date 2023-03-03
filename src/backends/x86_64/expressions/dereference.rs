@@ -49,12 +49,12 @@ mov rax, QWORD[rax]"
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, parser::parse};
+    use crate::{backends::x86_64::X86_64, parser::Parser};
 
     #[test]
     fn it_compiles_dereference() {
         let code = "data: usize = 10; pointer: &usize = &data; pointer#0";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT
@@ -74,7 +74,7 @@ add rsp, 16"
     #[test]
     fn it_compiles_dereference_of_reference() {
         let code = "public fn some(x: &usize, y: usize) pointer: &usize = x; pointer#0";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT

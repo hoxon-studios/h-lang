@@ -1,32 +1,38 @@
-use crate::parser::tokens::{Addition, Expression, Token, Value};
+use crate::parser::{
+    tokens::{Addition, Expression, Token, Value},
+    Parser,
+};
 
-pub fn parse_addition(stack: &mut Vec<Token>) -> Result<(), String> {
-    let Some(Token::Value(right)) = stack.pop() else {
-        return Err("Operand not found".to_string());
-    };
-    let Some(Token::Value(left)) = stack.pop() else {
-        return Err("Operand not found".to_string());
-    };
+impl<'a> Parser<'a> {
+    pub fn parse_addition(&mut self) -> Result<(), String> {
+        let Some(Token::Value(right)) = self.output.pop() else {
+            return Err("Operand not found".to_string());
+        };
+        let Some(Token::Value(left)) = self.output.pop() else {
+            return Err("Operand not found".to_string());
+        };
 
-    stack.push(Token::Value(Value::Result(Box::new(Expression::Addition(
-        Addition { left, right },
-    )))));
+        self.output
+            .push(Token::Value(Value::Result(Box::new(Expression::Addition(
+                Addition { left, right },
+            )))));
 
-    Ok(())
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::parser::{
-        parse,
         tokens::{Addition, Expression, Token, Value},
+        Parser,
     };
 
     #[test]
     fn it_parses_addition() {
         let code = "1 + 2";
         // ACT
-        let result = parse(code).unwrap();
+        let result = Parser::parse(code).unwrap();
         // ASSERT
         assert_eq!(
             result,

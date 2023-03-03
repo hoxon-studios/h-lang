@@ -1,26 +1,31 @@
-use crate::parser::tokens::{Token, Value};
+use crate::parser::{
+    tokens::{Token, Value},
+    Parser,
+};
 
-pub fn parse_reference(stack: &mut Vec<Token>) -> Result<(), String> {
-    let Some(Token::Value(Value::Label(label))) = stack.pop() else {
-        return Err("Invalid operand".to_string());
-    };
+impl<'a> Parser<'a> {
+    pub fn parse_reference(&mut self) -> Result<(), String> {
+        let Some(Token::Value(Value::Label(label))) = self.output.pop() else {
+            return Err("Invalid operand".to_string());
+        };
 
-    stack.push(Token::Value(Value::Reference(label)));
-    Ok(())
+        self.output.push(Token::Value(Value::Reference(label)));
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::parser::{
-        parse,
         tokens::{Assignment, Block, Declaration, Expression, LabelType, Statement, Token, Value},
+        Parser,
     };
 
     #[test]
     fn it_parses_reference() {
         let code = "some_var: usize = 1; &some_var";
         // ACT
-        let result = parse(code).unwrap();
+        let result = Parser::parse(code).unwrap();
         // ASSERT
         assert_eq!(
             result,

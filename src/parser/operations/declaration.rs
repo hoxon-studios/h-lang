@@ -1,40 +1,45 @@
-use crate::parser::tokens::{Declaration, LabelType, Token, Value};
+use crate::parser::{
+    tokens::{Declaration, LabelType, Token, Value},
+    Parser,
+};
 
-pub fn parse_declaration(stack: &mut Vec<Token>) -> Result<(), String> {
-    let Some(Token::Value(_type)) = stack.pop() else {
-        return Err("Invalid operand".to_string());
-    };
-    let Some(Token::Value(Value::Label(label))) = stack.pop() else {
-        return Err("Invalid operand".to_string());
-    };
+impl<'a> Parser<'a> {
+    pub fn parse_declaration(&mut self) -> Result<(), String> {
+        let Some(Token::Value(_type)) = self.output.pop() else {
+            return Err("Invalid operand".to_string());
+        };
+        let Some(Token::Value(Value::Label(label))) = self.output.pop() else {
+            return Err("Invalid operand".to_string());
+        };
 
-    let (pointer, _type) = match _type {
-        Value::Label("usize") => (false, LabelType::Usize),
-        Value::Reference("usize") => (true, LabelType::Usize),
-        _ => return Err("Invalid operand".to_string()),
-    };
+        let (pointer, _type) = match _type {
+            Value::Label("usize") => (false, LabelType::Usize),
+            Value::Reference("usize") => (true, LabelType::Usize),
+            _ => return Err("Invalid operand".to_string()),
+        };
 
-    stack.push(Token::Declaration(Declaration {
-        label,
-        _type,
-        pointer,
-    }));
+        self.output.push(Token::Declaration(Declaration {
+            label,
+            _type,
+            pointer,
+        }));
 
-    Ok(())
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::parser::{
-        parse,
         tokens::{Declaration, LabelType, Token},
+        Parser,
     };
 
     #[test]
     fn it_parses_declaration() {
         let code = "some_var: usize";
         // ACT
-        let result = parse(code).unwrap();
+        let result = Parser::parse(code).unwrap();
         // ASSERT
         assert_eq!(
             result,
@@ -50,7 +55,7 @@ mod tests {
     fn it_parses_pointer_declaration() {
         let code = "some_var: &usize";
         // ACT
-        let result = parse(code).unwrap();
+        let result = Parser::parse(code).unwrap();
         // ASSERT
         assert_eq!(
             result,

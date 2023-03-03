@@ -52,12 +52,12 @@ mov {label}, rax"
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, parser::parse};
+    use crate::{backends::x86_64::X86_64, parser::Parser};
 
     #[test]
     fn it_compiles_assignment() {
         let code = "some_var = 1";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT

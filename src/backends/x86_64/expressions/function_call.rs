@@ -81,12 +81,12 @@ lea {reg}, {label}"
 
 #[cfg(test)]
 mod tests {
-    use crate::{backends::x86_64::X86_64, parser::parse};
+    use crate::{backends::x86_64::X86_64, parser::Parser};
 
     #[test]
     fn it_compiles_function_call() {
         let code = "some_function$(1 + 2, 3, 4 + 5)";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT
@@ -107,7 +107,7 @@ call some_function"
     #[test]
     fn it_compiles_system_call() {
         let code = "syscall$(0x01, 0, message, length)";
-        let tokens = parse(code).unwrap();
+        let tokens = Parser::parse(code).unwrap();
         // ACT
         let result = X86_64::init().compile(tokens);
         // ASSERT

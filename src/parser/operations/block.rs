@@ -1,65 +1,78 @@
-use crate::parser::tokens::{Block, Expression, Token, Value};
+use crate::parser::{
+    tokens::{Block, Expression, Token, Value},
+    Parser,
+};
 
-pub fn parse_block(stack: &mut Vec<Token>) -> Result<(), String> {
-    let Some(right) = stack.pop() else {
-        return Err("Operand not found".to_string());
-    };
-    let Some(left) = stack.pop() else {
-        return Err("Operand not found".to_string());
-    };
+impl<'a> Parser<'a> {
+    pub fn parse_block(&mut self) -> Result<(), String> {
+        let Some(right) = self.output.pop() else {
+            return Err("Operand not found".to_string());
+        };
+        let Some(left) = self.output.pop() else {
+            return Err("Operand not found".to_string());
+        };
 
-    match (left, right) {
-        (Token::Statement(left), Token::Statement(right)) => stack.push(Token::Value(
-            Value::Result(Box::new(Expression::Block(Block {
-                body: vec![left, right],
-                result: Value::Unit,
-            }))),
-        )),
-        (Token::Statement(left), Token::Value(right)) => stack.push(Token::Value(Value::Result(
-            Box::new(Expression::Block(Block {
-                body: vec![left],
-                result: right,
-            })),
-        ))),
-        (Token::Value(Value::Result(result)), Token::Statement(right)) => match *result {
-            Expression::Block(mut block) => {
-                block.body.push(right);
-                stack.push(Token::Value(Value::Result(Box::new(Expression::Block(
-                    block,
-                )))));
+        match (left, right) {
+            (Token::Statement(left), Token::Statement(right)) => {
+                self.output
+                    .push(Token::Value(Value::Result(Box::new(Expression::Block(
+                        Block {
+                            body: vec![left, right],
+                            result: Value::Unit,
+                        },
+                    )))))
             }
-            _ => return Err("Invalid operand".to_string()),
-        },
-        (Token::Value(Value::Result(result)), Token::Value(right)) => match *result {
-            Expression::Block(mut block) => {
-                block.result = right;
-                stack.push(Token::Value(Value::Result(Box::new(Expression::Block(
-                    block,
-                )))));
+            (Token::Statement(left), Token::Value(right)) => {
+                self.output
+                    .push(Token::Value(Value::Result(Box::new(Expression::Block(
+                        Block {
+                            body: vec![left],
+                            result: right,
+                        },
+                    )))))
             }
+            (Token::Value(Value::Result(result)), Token::Statement(right)) => match *result {
+                Expression::Block(mut block) => {
+                    block.body.push(right);
+                    self.output
+                        .push(Token::Value(Value::Result(Box::new(Expression::Block(
+                            block,
+                        )))));
+                }
+                _ => return Err("Invalid operand".to_string()),
+            },
+            (Token::Value(Value::Result(result)), Token::Value(right)) => match *result {
+                Expression::Block(mut block) => {
+                    block.result = right;
+                    self.output
+                        .push(Token::Value(Value::Result(Box::new(Expression::Block(
+                            block,
+                        )))));
+                }
+                _ => return Err("Invalid operand".to_string()),
+            },
             _ => return Err("Invalid operand".to_string()),
-        },
-        _ => return Err("Invalid operand".to_string()),
+        }
+
+        Ok(())
     }
-
-    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use crate::parser::{
-        parse,
         tokens::{
             Addition, Assignment, Block, Declaration, Expression, LabelType, Statement, Token,
             Value,
         },
+        Parser,
     };
 
     #[test]
     fn it_parses_block() {
         let code = "some_var: usize = 1; another_var: usize = 2";
         // ACT
-        let result = parse(code).unwrap();
+        let result = Parser::parse(code).unwrap();
         // ASSERT
         assert_eq!(
             result,
@@ -93,7 +106,7 @@ mod tests {
     fn it_parses_block_with_result() {
         let code = "some_var: usize = 1; another: usize = 2; some_var + another";
         // ACT
-        let result = parse(code).unwrap();
+        let result = Parser::parse(code).unwrap();
         // ASSERT
         assert_eq!(
             result,

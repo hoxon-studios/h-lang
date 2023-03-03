@@ -1,42 +1,44 @@
-use crate::parser::tokens::Token;
+use crate::parser::{tokens::Token, Parser};
 
-pub fn parse_group(stack: &mut Vec<Token>) -> Result<(), String> {
-    let Some(left) = stack.pop() else {
-        return Err("Operand not found".to_string());
-    };
-    let Some(right) = stack.pop() else {
-        return Err("Operand not found".to_string());
-    };
+impl<'a> Parser<'a> {
+    pub fn parse_group(&mut self) -> Result<(), String> {
+        let Some(left) = self.output.pop() else {
+            return Err("Operand not found".to_string());
+        };
+        let Some(right) = self.output.pop() else {
+            return Err("Operand not found".to_string());
+        };
 
-    let mut left = if let Token::Set(left) = left {
-        left
-    } else {
-        vec![left]
-    };
-    let mut right = if let Token::Set(right) = right {
-        right
-    } else {
-        vec![right]
-    };
+        let mut left = if let Token::Set(left) = left {
+            left
+        } else {
+            vec![left]
+        };
+        let mut right = if let Token::Set(right) = right {
+            right
+        } else {
+            vec![right]
+        };
 
-    right.append(&mut left);
-    stack.push(Token::Set(right));
+        right.append(&mut left);
+        self.output.push(Token::Set(right));
 
-    Ok(())
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::parser::{
-        parse,
         tokens::{Token, Value},
+        Parser,
     };
 
     #[test]
     fn it_parses_group() {
         let code = "(1, 2, 3)";
         // ACT
-        let result = parse(code).unwrap();
+        let result = Parser::parse(code).unwrap();
         // ASSERT
         assert_eq!(
             result,
@@ -52,7 +54,7 @@ mod tests {
     fn it_parses_empty_group() {
         let code = "()";
         // ACT
-        let result = parse(code).unwrap();
+        let result = Parser::parse(code).unwrap();
         // ASSERT
         assert_eq!(result, vec![Token::Value(Value::Unit)]);
     }

@@ -1,18 +1,23 @@
-use crate::parser::tokens::{Dereference, Expression, Token, Value};
+use crate::parser::{
+    tokens::{Dereference, Expression, Token, Value},
+    Parser,
+};
 
-pub fn parse_dereference(stack: &mut Vec<Token>) -> Result<(), String> {
-    let Some(Token::Value(index)) = stack.pop() else {
-        return Err("Invalid operand".to_string());
-    };
-    let Some(Token::Value(Value::Label(label))) = stack.pop() else {
-        return Err("Invalid operand".to_string())
-    };
+impl<'a> Parser<'a> {
+    pub fn parse_dereference(&mut self) -> Result<(), String> {
+        let Some(Token::Value(index)) = self.output.pop() else {
+            return Err("Invalid operand".to_string());
+        };
+        let Some(Token::Value(Value::Label(label))) = self.output.pop() else {
+            return Err("Invalid operand".to_string())
+        };
 
-    stack.push(Token::Value(Value::Result(Box::new(
-        Expression::Dereference(Dereference {
-            label,
-            index: Box::new(index),
-        }),
-    ))));
-    Ok(())
+        self.output.push(Token::Value(Value::Result(Box::new(
+            Expression::Dereference(Dereference {
+                label,
+                index: Box::new(index),
+            }),
+        ))));
+        Ok(())
+    }
 }

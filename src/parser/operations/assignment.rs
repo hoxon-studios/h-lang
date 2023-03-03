@@ -1,35 +1,41 @@
-use crate::parser::tokens::{Assignment, Statement, Token};
+use crate::parser::{
+    tokens::{Assignment, Statement, Token},
+    Parser,
+};
 
-pub fn parse_assignment(stack: &mut Vec<Token>) -> Result<(), String> {
-    let Some(Token::Value(value)) = stack.pop() else {
-        return Err("Operand not found".to_string());
-    };
-    let Some(address) = stack.pop() else {
-        return Err("Operand not found".to_string());
-    };
+impl<'a> Parser<'a> {
+    pub fn parse_assignment(&mut self) -> Result<(), String> {
+        let Some(Token::Value(value)) = self.output.pop() else {
+            return Err("Operand not found".to_string());
+        };
+        let Some(address) = self.output.pop() else {
+            return Err("Operand not found".to_string());
+        };
 
-    stack.push(Token::Statement(Statement::Assignment(Assignment {
-        address: Box::new(address),
-        value,
-    })));
+        self.output
+            .push(Token::Statement(Statement::Assignment(Assignment {
+                address: Box::new(address),
+                value,
+            })));
 
-    Ok(())
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::parser::{
-        parse,
         tokens::{
             Addition, Assignment, Declaration, Expression, LabelType, Statement, Token, Value,
         },
+        Parser,
     };
 
     #[test]
     fn it_parses_assignment() {
         let code = "variable: usize = 1 + 2";
         // ACT
-        let result = parse(code).unwrap();
+        let result = Parser::parse(code).unwrap();
         // ASSERT
         assert_eq!(
             result,

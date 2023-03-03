@@ -1,10 +1,4 @@
-use self::{
-    addition::parse_addition, assignment::parse_assignment, block::parse_block, call::parse_call,
-    declaration::parse_declaration, dereference::parse_dereference, function::parse_function,
-    group::parse_group, reference::parse_reference, visibility::parse_visibility,
-};
-
-use super::{cursor::eat_token, tokens::Token};
+use super::cursor::eat_token;
 
 pub mod addition;
 pub mod assignment;
@@ -39,23 +33,6 @@ pub enum Operation {
 }
 
 impl Operation {
-    pub fn apply(&self, stack: &mut Vec<Token>) -> Result<(), String> {
-        match self {
-            Operation::Reference => parse_reference(stack)?,
-            Operation::Visibility { export } => parse_visibility(stack, *export)?,
-            Operation::Let => parse_declaration(stack)?,
-            Operation::Group => parse_group(stack)?,
-            Operation::Sequence => parse_block(stack)?,
-            Operation::Assign => parse_assignment(stack)?,
-            Operation::Addition => parse_addition(stack)?,
-            Operation::Call => parse_call(stack)?,
-            Operation::Function => parse_function(stack)?,
-            Operation::Dereference => parse_dereference(stack)?,
-        }
-
-        Ok(())
-    }
-
     pub fn precedence(&self) -> usize {
         match self {
             Operation::Visibility { .. } => 0,
