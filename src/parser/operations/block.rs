@@ -1,141 +1,65 @@
-use crate::parser::{
-    tokens::{Block, Expression, Token, Value},
-    Parser,
-};
+use crate::parser::{tokens::Token, Parser};
 
 impl<'a> Parser<'a> {
-    pub fn parse_block(&mut self) -> Result<(), String> {
+    pub fn parse_block(&mut self) {
         let Some(right) = self.output.pop() else {
-            return Err("Operand not found".to_string());
+            panic!("Invalid operand")
         };
-        let Some(left) = self.output.pop() else {
-            return Err("Operand not found".to_string());
+        let Some(Token::Instruction(left)) = self.output.pop() else {
+            panic!("Invalid operand")
         };
 
-        match (left, right) {
-            (Token::Statement(left), Token::Statement(right)) => {
-                self.output
-                    .push(Token::Value(Value::Result(Box::new(Expression::Block(
-                        Block {
-                            body: vec![left, right],
-                            result: Value::Unit,
-                        },
-                    )))))
+        match right {
+            Token::Instruction(right) => self.output.push(Token::Instruction(format!(
+                "\
+{left}
+{right}"
+            ))),
+            Token::Result(right) => self.output.push(Token::Result(format!(
+                "\
+{left}
+{right}"
+            ))),
+            Token::Constant(right) => self.output.push(Token::Result(format!(
+                "\
+{left}
+mov rax, {right}"
+            ))),
+            Token::Label(right) => {
+                let right = self.context.address(right);
+                self.output.push(Token::Result(format!(
+                    "\
+{left}
+mov rax, {right}"
+                )))
             }
-            (Token::Statement(left), Token::Value(right)) => {
-                self.output
-                    .push(Token::Value(Value::Result(Box::new(Expression::Block(
-                        Block {
-                            body: vec![left],
-                            result: right,
-                        },
-                    )))))
-            }
-            (Token::Value(Value::Result(result)), Token::Statement(right)) => match *result {
-                Expression::Block(mut block) => {
-                    block.body.push(right);
-                    self.output
-                        .push(Token::Value(Value::Result(Box::new(Expression::Block(
-                            block,
-                        )))));
-                }
-                _ => return Err("Invalid operand".to_string()),
-            },
-            (Token::Value(Value::Result(result)), Token::Value(right)) => match *result {
-                Expression::Block(mut block) => {
-                    block.result = right;
-                    self.output
-                        .push(Token::Value(Value::Result(Box::new(Expression::Block(
-                            block,
-                        )))));
-                }
-                _ => return Err("Invalid operand".to_string()),
-            },
-            _ => return Err("Invalid operand".to_string()),
+            Token::Unit => self.output.push(Token::Result(format!(
+                "\
+{left}
+mov rax, 0"
+            ))),
+            _ => panic!("Invalid operand"),
         }
-
-        Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{
-        tokens::{
-            Addition, Assignment, Block, Declaration, Expression, LabelType, Statement, Token,
-            Value,
-        },
-        Parser,
-    };
+    use crate::parser::Parser;
 
     #[test]
-    fn it_parses_block() {
-        let code = "some_var: usize = 1; another_var: usize = 2";
+    fn it_compiles_block() {
+        let code = "some_value: usize = 1; another: usize = 2; some_value + 2";
         // ACT
-        let result = Parser::parse(code).unwrap();
+        let result = Parser::parse(code);
         // ASSERT
         assert_eq!(
             result,
-            vec![Token::Value(Value::Result(Box::new(Expression::Block(
-                Block {
-                    body: vec![
-                        Statement::Assignment(Assignment {
-                            address: Box::new(Token::Declaration(Declaration {
-                                label: "some_var",
-                                pointer: false,
-                                _type: LabelType::Usize
-                            })),
-                            value: Value::Constant("1")
-                        }),
-                        Statement::Assignment(Assignment {
-                            address: Box::new(Token::Declaration(Declaration {
-                                label: "another_var",
-                                pointer: false,
-                                _type: LabelType::Usize
-                            })),
-                            value: Value::Constant("2")
-                        })
-                    ],
-                    result: Value::Unit
-                }
-            ))))]
-        );
-    }
-
-    #[test]
-    fn it_parses_block_with_result() {
-        let code = "some_var: usize = 1; another: usize = 2; some_var + another";
-        // ACT
-        let result = Parser::parse(code).unwrap();
-        // ASSERT
-        assert_eq!(
-            result,
-            vec![Token::Value(Value::Result(Box::new(Expression::Block(
-                Block {
-                    body: vec![
-                        Statement::Assignment(Assignment {
-                            address: Box::new(Token::Declaration(Declaration {
-                                label: "some_var",
-                                pointer: false,
-                                _type: LabelType::Usize
-                            })),
-                            value: Value::Constant("1")
-                        }),
-                        Statement::Assignment(Assignment {
-                            address: Box::new(Token::Declaration(Declaration {
-                                label: "another",
-                                pointer: false,
-                                _type: LabelType::Usize
-                            })),
-                            value: Value::Constant("2")
-                        })
-                    ],
-                    result: Value::Result(Box::new(Expression::Addition(Addition {
-                        left: Value::Label("some_var"),
-                        right: Value::Label("another")
-                    })))
-                }
-            ))))]
+            "\
+mov QWORD[rbp - 8], 1
+mov QWORD[rbp - 16], 2
+mov rax, QWORD[rbp - 8]
+add rax, 2"
         );
     }
 }

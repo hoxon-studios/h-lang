@@ -6,10 +6,10 @@ pub mod block;
 pub mod call;
 pub mod declaration;
 pub mod dereference;
+pub mod export;
 pub mod function;
 pub mod group;
 pub mod reference;
-pub mod visibility;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Operator {

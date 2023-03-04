@@ -1,27 +1,27 @@
-use backends::x86_64::X86_64;
+//use backends::x86_64::X86_64;
 
 use crate::parser::Parser;
 
-mod backends;
+//mod backends;
 mod parser;
 
 fn main() {
-    let mut context = X86_64::init();
+    //let mut context = X86_64::init();
     loop {
         let mut buffer = String::new();
         let _ = std::io::stdin().read_line(&mut buffer);
         if buffer.starts_with(":q") {
             break;
         } else if buffer.starts_with(":clear") {
-            context = X86_64::init();
+            //context = X86_64::init();
         } else {
-            let tokens = Parser::parse(&buffer).unwrap();
-            let output = context.compile(tokens);
+            let tokens = Parser::parse(&buffer);
+            //let output = context.compile(tokens);
 
             println!("-CONTEXT--------------");
-            println!("{:#?}", context);
+            //println!("{:#?}", context);
             println!("-ASM------------------");
-            println!("{output}");
+            //println!("{output}");
             println!("----------------------");
         }
     }

@@ -1,69 +1,42 @@
 use crate::parser::{
-    tokens::{Declaration, LabelType, Token, Value},
+    context::{Symbol, SymbolType},
+    tokens::Token,
     Parser,
 };
 
 impl<'a> Parser<'a> {
-    pub fn parse_declaration(&mut self) -> Result<(), String> {
-        let Some(Token::Value(_type)) = self.output.pop() else {
-            return Err("Invalid operand".to_string());
+    pub fn parse_declaration(&mut self) {
+        let Some(Token::Label(_type)) = self.output.pop() else {
+            panic!("Invalid operand")
         };
-        let Some(Token::Value(Value::Label(label))) = self.output.pop() else {
-            return Err("Invalid operand".to_string());
-        };
-
-        let (pointer, _type) = match _type {
-            Value::Label("usize") => (false, LabelType::Usize),
-            Value::Reference("usize") => (true, LabelType::Usize),
-            _ => return Err("Invalid operand".to_string()),
+        let Some(Token::Label(label)) = self.output.pop() else {
+            panic!("Invalid operand")
         };
 
-        self.output.push(Token::Declaration(Declaration {
-            label,
-            _type,
-            pointer,
-        }));
+        let scope = self.context.take_scope();
 
-        Ok(())
-    }
-}
+        if _type == "ptr" {
+            let symbol = scope
+                .symbols
+                .iter_mut()
+                .find(|s| s.name == label)
+                .expect("Symbol not found");
+            symbol._type = SymbolType::Pointer(Box::new(symbol._type.clone()));
+        } else {
+            let _type = match _type {
+                "usize" => SymbolType::Usize,
+                _ => panic!("Invalid type"),
+            };
+            let symbol = scope.symbols.iter_mut().find(|s| s.name == label);
+            match symbol {
+                Some(symbol) => symbol._type = _type,
+                None => scope.symbols.push(Symbol {
+                    name: label.to_string(),
+                    _type,
+                }),
+            }
+        }
 
-#[cfg(test)]
-mod tests {
-    use crate::parser::{
-        tokens::{Declaration, LabelType, Token},
-        Parser,
-    };
-
-    #[test]
-    fn it_parses_declaration() {
-        let code = "some_var: usize";
-        // ACT
-        let result = Parser::parse(code).unwrap();
-        // ASSERT
-        assert_eq!(
-            result,
-            vec![Token::Declaration(Declaration {
-                label: "some_var",
-                pointer: false,
-                _type: LabelType::Usize
-            })],
-        );
-    }
-
-    #[test]
-    fn it_parses_pointer_declaration() {
-        let code = "some_var: &usize";
-        // ACT
-        let result = Parser::parse(code).unwrap();
-        // ASSERT
-        assert_eq!(
-            result,
-            vec![Token::Declaration(Declaration {
-                label: "some_var",
-                pointer: true,
-                _type: LabelType::Usize
-            })],
-        );
+        self.output.push(Token::Label(label));
     }
 }

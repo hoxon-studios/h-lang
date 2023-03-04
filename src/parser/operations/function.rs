@@ -1,112 +1,158 @@
-use crate::parser::{
-    tokens::{Block, Declaration, Definition, Expression, Function, Token, Value},
-    Parser,
-};
+use crate::parser::{tokens::Token, Parser};
+
+use super::call::SYSTEM_V_AMD64_ABI_CONVENTION;
 
 impl<'a> Parser<'a> {
-    pub fn parse_function(&mut self) -> Result<(), String> {
-        let Some(Token::Value(body)) = self.output.pop() else {
-            return Err("Invalid operand".to_string());
+    pub fn parse_function(&mut self) {
+        let Some(body) = self.output.pop() else {
+            panic!("Invalid operand")
         };
-        let body = match &body {
-            Value::Result(result) => match &**result {
-                Expression::Block(body) => body.clone(),
-                _ => Block {
-                    body: vec![],
-                    result: body.clone(),
-                },
-            },
-            _ => Block {
-                body: vec![],
-                result: body.clone(),
-            },
+        let Some(parameters) = self.output.pop() else {
+            panic!("Invalid operand")
+        };
+        let Some(Token::Label(label)) = self.output.pop() else {
+            panic!("Invalid operand")
         };
 
-        let Some(parameters) = self.output.pop() else {
-            return Err("Invalid operand".to_string());
+        let body = match body {
+            Token::Result(body) => body,
+            Token::Instruction(body) => body,
+            Token::Constant(body) => format!(
+                "\
+mov rax, {body}"
+            ),
+            _ => panic!("Invalid operand"),
         };
+
         let parameters = match parameters {
             Token::Set(parameters) => parameters
                 .iter()
                 .map(|p| match p {
-                    Token::Declaration(declaration) => declaration.clone(),
+                    &Token::Label(label) => label,
                     _ => panic!("Invalid operand"),
                 })
-                .collect::<Vec<Declaration>>(),
-            Token::Value(Value::Unit) => vec![],
-            Token::Declaration(declaration) => vec![declaration],
-            _ => return Err("Invalid operand".to_string()),
-        };
-        let Some(Token::Value(Value::Label(label))) = self.output.pop() else {
-            return Err("Invalid operand".to_string());
+                .collect::<Vec<&str>>(),
+            Token::Unit => vec![],
+            Token::Label(label) => vec![label],
+            _ => panic!("Invalid operand"),
         };
 
-        self.output
-            .push(Token::Definition(Definition::Function(Function {
-                export: false,
-                label,
-                parameters,
-                body,
-            })));
+        let parameters = parameters
+            .iter()
+            .zip(SYSTEM_V_AMD64_ABI_CONVENTION)
+            .map(|(p, reg)| {
+                let label = self.context.address(p);
+                format!("mov {label}, {reg}")
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
 
-        Ok(())
+        let stack_size: Option<usize> = self
+            .context
+            .scopes
+            .pop()
+            .map(|scope| scope.symbols.iter().map(|s| s._type.size()).sum());
+
+        let result = if let Some(stack_size) = stack_size {
+            format!(
+                "\
+{label}:
+push rbp
+mov rbp, rsp
+sub rsp, {stack_size}
+{parameters}
+{body}
+add rsp, {stack_size}
+pop rbp
+ret"
+            )
+        } else {
+            format!(
+                "\
+{label}:
+push rbp
+mov rbp, rsp
+{parameters}
+{body}
+pop rbp
+ret"
+            )
+        };
+
+        self.output.push(Token::Item {
+            name: label,
+            definition: result,
+        });
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{
-        tokens::{
-            Addition, Assignment, Block, Declaration, Definition, Expression, Function, LabelType,
-            Statement, Token, Value,
-        },
-        Parser,
-    };
+    use crate::parser::Parser;
 
     #[test]
-    fn it_parses_function_definition() {
+    fn it_compiles_a_function_definition() {
         let code = "\
             fn some(x: usize, y: usize)
                 a: usize = 3;
                 a + x + y";
         // ACT
-        let result = Parser::parse(code).unwrap();
+        let result = Parser::parse(code);
         // ASSERT
         assert_eq!(
             result,
-            vec![Token::Definition(Definition::Function(Function {
-                export: false,
-                label: "some",
-                parameters: vec![
-                    Declaration {
-                        label: "x",
-                        pointer: false,
-                        _type: LabelType::Usize,
-                    },
-                    Declaration {
-                        label: "y",
-                        pointer: false,
-                        _type: LabelType::Usize
-                    }
-                ],
-                body: Block {
-                    body: vec![Statement::Assignment(Assignment {
-                        address: Box::new(Token::Declaration(Declaration {
-                            label: "a",
-                            pointer: false,
-                            _type: LabelType::Usize
-                        })),
-                        value: Value::Constant("3")
-                    })],
-                    result: Value::Result(Box::new(Expression::Addition(Addition {
-                        left: Value::Result(Box::new(Expression::Addition(Addition {
-                            left: Value::Label("a"),
-                            right: Value::Label("x")
-                        }))),
-                        right: Value::Label("y")
-                    })))
-                }
-            }))]
-        );
+            "\
+some:
+push rbp
+mov rbp, rsp
+sub rsp, 24
+mov QWORD[rbp - 8], rdi
+mov QWORD[rbp - 16], rsi
+mov QWORD[rbp - 24], 3
+mov rax, QWORD[rbp - 24]
+add rax, QWORD[rbp - 8]
+add rax, QWORD[rbp - 16]
+add rsp, 24
+pop rbp
+ret"
+        )
+    }
+
+    #[test]
+    fn it_compiles_two_function_definitions() {
+        let code = "\
+            public fn some(x: usize, y: usize)
+                x + y
+            private fn power(x: usize)
+                x + x";
+        // ACT
+        let result = Parser::parse(code);
+        // ASSERT
+        assert_eq!(
+            result,
+            "\
+global some
+some:
+push rbp
+mov rbp, rsp
+sub rsp, 16
+mov QWORD[rbp - 8], rdi
+mov QWORD[rbp - 16], rsi
+mov rax, QWORD[rbp - 8]
+add rax, QWORD[rbp - 16]
+add rsp, 16
+pop rbp
+ret
+power:
+push rbp
+mov rbp, rsp
+sub rsp, 8
+mov QWORD[rbp - 8], rdi
+mov rax, QWORD[rbp - 8]
+add rax, QWORD[rbp - 8]
+add rsp, 8
+pop rbp
+ret"
+        )
     }
 }
