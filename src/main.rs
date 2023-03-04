@@ -13,15 +13,11 @@ fn main() {
         if buffer.starts_with(":q") {
             break;
         } else if buffer.starts_with(":clear") {
-            //context = X86_64::init();
         } else {
-            let tokens = Parser::parse(&buffer);
-            //let output = context.compile(tokens);
+            let output = Parser::parse(&buffer);
 
-            println!("-CONTEXT--------------");
-            //println!("{:#?}", context);
             println!("-ASM------------------");
-            //println!("{output}");
+            println!("{output}");
             println!("----------------------");
         }
     }
