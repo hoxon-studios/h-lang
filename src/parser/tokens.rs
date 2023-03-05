@@ -4,7 +4,13 @@ pub enum Token<'a> {
     Constant(&'a str),
     Label(&'a str),
     Set(Vec<Token<'a>>),
-    Instruction(String),
+    Statement {
+        body: String,
+        exit_label: Option<String>,
+    },
     Result(String),
-    Item { name: &'a str, definition: String },
+    Item {
+        name: &'a str,
+        definition: String,
+    },
 }

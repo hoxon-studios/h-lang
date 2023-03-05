@@ -102,7 +102,7 @@ impl<'a> Parser<'a> {
             .iter()
             .map(|token| match token {
                 Token::Result(value) => value.clone(),
-                Token::Instruction(value) => value.clone(),
+                Token::Statement { body, .. } => body.clone(),
                 Token::Item { definition, .. } => definition.clone(),
                 _ => panic!("Invalid token"),
             })
@@ -123,6 +123,8 @@ impl<'a> Parser<'a> {
             Operation::Call => self.parse_call(),
             Operation::Function => self.parse_function(),
             Operation::Dereference => self.parse_dereference(),
+            Operation::If => self.parse_if_conditional(),
+            Operation::Else => self.parse_else_conditional(),
         }
     }
 }

@@ -6,19 +6,24 @@ use crate::parser::Parser;
 mod parser;
 
 fn main() {
-    //let mut context = X86_64::init();
+    let mut code = String::new();
     loop {
         let mut buffer = String::new();
         let _ = std::io::stdin().read_line(&mut buffer);
-        if buffer.starts_with(":q") {
+        if buffer.starts_with(":quit") {
             break;
         } else if buffer.starts_with(":clear") {
-        } else {
-            let output = Parser::parse(&buffer);
+            code.clear();
+        } else if buffer.starts_with(":build") {
+            println!("CODE:");
+            println!("{}", code);
+            let output = Parser::parse(&code);
 
             println!("-ASM------------------");
             println!("{output}");
             println!("----------------------");
+        } else {
+            code.push_str(&buffer);
         }
     }
 }

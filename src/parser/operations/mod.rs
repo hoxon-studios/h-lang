@@ -4,6 +4,7 @@ pub mod addition;
 pub mod assignment;
 pub mod block;
 pub mod call;
+pub mod conditional;
 pub mod declaration;
 pub mod dereference;
 pub mod export;
@@ -29,6 +30,8 @@ pub enum Operation {
     Function,
     Reference,
     Dereference,
+    If,
+    Else,
     Visibility { export: bool },
 }
 
@@ -38,13 +41,15 @@ impl Operation {
             Operation::Visibility { .. } => 0,
             Operation::Function => 1,
             Operation::Sequence => 2,
-            Operation::Assign => 3,
-            Operation::Call => 4,
-            Operation::Group => 5,
-            Operation::Let => 6,
-            Operation::Addition => 7,
-            Operation::Reference => 8,
-            Operation::Dereference => 8,
+            Operation::Else => 3,
+            Operation::If => 4,
+            Operation::Assign => 5,
+            Operation::Call => 6,
+            Operation::Group => 7,
+            Operation::Let => 8,
+            Operation::Addition => 9,
+            Operation::Reference => 10,
+            Operation::Dereference => 11,
         }
     }
     pub fn left_associated(&self) -> bool {
@@ -59,6 +64,8 @@ impl Operation {
             Operation::Call => true,
             Operation::Reference => true,
             Operation::Dereference => true,
+            Operation::If => true,
+            Operation::Else => true,
         }
     }
 }
@@ -86,6 +93,10 @@ pub fn eat_operator(code: &str) -> Option<(&str, Operator)> {
         Some((code, Operator::Operation(Operation::Call)))
     } else if let Some(code) = eat_token(code, "fn ") {
         Some((code, Operator::Operation(Operation::Function)))
+    } else if let Some(code) = eat_token(code, "if ") {
+        Some((code, Operator::Operation(Operation::If)))
+    } else if let Some(code) = eat_token(code, "else ") {
+        Some((code, Operator::Operation(Operation::Else)))
     } else if let Some(code) = eat_token(code, "public ") {
         Some((
             code,

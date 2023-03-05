@@ -43,16 +43,28 @@ impl Context {
         if self.scopes.len() > 0 {
             self.scopes.last_mut().unwrap()
         } else {
-            let scope = ContextScope { symbols: vec![] };
+            let scope = ContextScope {
+                symbols: vec![],
+                labels: 0,
+            };
             self.scopes.push(scope);
 
             self.scopes.last_mut().unwrap()
         }
     }
+
+    pub fn take_label(&mut self) -> String {
+        let scope = self.take_scope();
+        let label = format!(".L{}", scope.labels);
+        scope.labels += 1;
+
+        label
+    }
 }
 
 pub struct ContextScope {
     pub symbols: Vec<Symbol>,
+    pub labels: usize,
 }
 
 pub struct Symbol {

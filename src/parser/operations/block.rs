@@ -5,16 +5,19 @@ impl<'a> Parser<'a> {
         let Some(right) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Instruction(left)) = self.output.pop() else {
+        let Some(Token::Statement { body: left, .. }) = self.output.pop() else {
             panic!("Invalid operand")
         };
 
         match right {
-            Token::Instruction(right) => self.output.push(Token::Instruction(format!(
-                "\
+            Token::Statement { body: right, .. } => self.output.push(Token::Statement {
+                body: format!(
+                    "\
 {left}
 {right}"
-            ))),
+                ),
+                exit_label: None,
+            }),
             Token::Result(right) => self.output.push(Token::Result(format!(
                 "\
 {left}

@@ -16,7 +16,14 @@ impl<'a> Parser<'a> {
 
         let body = match body {
             Token::Result(body) => body,
-            Token::Instruction(body) => body,
+            Token::Statement { body, .. } => body,
+            Token::Label(body) => {
+                let body = self.context.address(body);
+                format!(
+                    "\
+mov rax, {body}"
+                )
+            }
             Token::Constant(body) => format!(
                 "\
 mov rax, {body}"

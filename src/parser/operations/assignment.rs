@@ -10,7 +10,7 @@ impl<'a> Parser<'a> {
         };
 
         let label = self.context.address(label);
-        let result = match value {
+        let body = match value {
             Token::Constant(value) => format!(
                 "\
 mov {label}, {value}"
@@ -31,7 +31,10 @@ mov {label}, rax"
             _ => panic!("Invalid operand"),
         };
 
-        self.output.push(Token::Instruction(result));
+        self.output.push(Token::Statement {
+            body,
+            exit_label: None,
+        });
     }
 }
 
