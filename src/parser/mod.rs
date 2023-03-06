@@ -5,6 +5,7 @@ pub mod cursor;
 pub mod operations;
 pub mod tokens;
 
+#[derive(Debug)]
 pub struct Parser<'a> {
     context: Context,
     output: Vec<Token<'a>>,
@@ -125,6 +126,8 @@ impl<'a> Parser<'a> {
             Operation::Dereference => self.parse_dereference(),
             Operation::If => self.parse_if_conditional(),
             Operation::Else => self.parse_else_conditional(),
+            Operation::Loop => self.parse_loop(),
+            Operation::Break => self.parse_break(),
         }
     }
 }

@@ -1,5 +1,6 @@
 const USIZE: usize = 8;
 
+#[derive(Debug)]
 pub struct Context {
     pub scopes: Vec<ContextScope>,
 }
@@ -53,26 +54,28 @@ impl Context {
         }
     }
 
-    pub fn take_label(&mut self) -> String {
+    pub fn take_label(&mut self, prefix: &str) -> String {
         let scope = self.take_scope();
-        let label = format!(".L{}", scope.labels);
+        let label = format!(".{}_{}", prefix, scope.labels);
         scope.labels += 1;
 
         label
     }
 }
 
+#[derive(Debug)]
 pub struct ContextScope {
     pub symbols: Vec<Symbol>,
     pub labels: usize,
 }
 
+#[derive(Debug)]
 pub struct Symbol {
     pub name: String,
     pub _type: SymbolType,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum SymbolType {
     Usize,
     Pointer(Box<SymbolType>),

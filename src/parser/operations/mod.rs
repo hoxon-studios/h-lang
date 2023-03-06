@@ -10,6 +10,7 @@ pub mod dereference;
 pub mod export;
 pub mod function;
 pub mod group;
+pub mod loop_statement;
 pub mod reference;
 
 #[derive(PartialEq, Debug, Clone)]
@@ -32,6 +33,8 @@ pub enum Operation {
     Dereference,
     If,
     Else,
+    Loop,
+    Break,
     Visibility { export: bool },
 }
 
@@ -41,15 +44,17 @@ impl Operation {
             Operation::Visibility { .. } => 0,
             Operation::Function => 1,
             Operation::Sequence => 2,
-            Operation::Else => 3,
-            Operation::If => 4,
-            Operation::Assign => 5,
-            Operation::Call => 6,
-            Operation::Group => 7,
-            Operation::Let => 8,
-            Operation::Addition => 9,
-            Operation::Reference => 10,
-            Operation::Dereference => 11,
+            Operation::Loop => 3,
+            Operation::Else => 4,
+            Operation::If => 5,
+            Operation::Assign => 6,
+            Operation::Call => 7,
+            Operation::Group => 8,
+            Operation::Let => 9,
+            Operation::Addition => 10,
+            Operation::Reference => 11,
+            Operation::Dereference => 12,
+            Operation::Break => 13,
         }
     }
     pub fn left_associated(&self) -> bool {
@@ -66,6 +71,8 @@ impl Operation {
             Operation::Dereference => true,
             Operation::If => true,
             Operation::Else => true,
+            Operation::Loop => true,
+            Operation::Break => true,
         }
     }
 }
@@ -93,6 +100,10 @@ pub fn eat_operator(code: &str) -> Option<(&str, Operator)> {
         Some((code, Operator::Operation(Operation::Call)))
     } else if let Some(code) = eat_token(code, "fn ") {
         Some((code, Operator::Operation(Operation::Function)))
+    } else if let Some(code) = eat_token(code, "loop ") {
+        Some((code, Operator::Operation(Operation::Loop)))
+    } else if let Some(code) = eat_token(code, "break ") {
+        Some((code, Operator::Operation(Operation::Break)))
     } else if let Some(code) = eat_token(code, "if ") {
         Some((code, Operator::Operation(Operation::If)))
     } else if let Some(code) = eat_token(code, "else ") {

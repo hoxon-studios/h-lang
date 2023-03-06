@@ -20,8 +20,8 @@ impl<'a> Parser<'a> {
                 panic!("Invalid operand")
             }
         };
-        let exit_label = self.context.take_label();
-        let next_label = self.context.take_label();
+        let exit_label = self.context.take_label("C_EXIT");
+        let next_label = self.context.take_label("C_NEXT");
         let condition = match condition {
             Token::Constant(condition) => format!(
                 "\
@@ -103,6 +103,31 @@ mod tests {
         // ACT
         let result = Parser::parse(code);
         // ASSERT
-        assert_eq!(result, "");
+        assert_eq!(
+            result,
+            "\
+check:
+push rbp
+mov rbp, rsp
+sub rsp, 16
+mov QWORD[rbp - 8], rdi
+mov QWORD[rbp - 16], 0
+cmp 0, 0
+je .C_NEXT_1
+mov QWORD[rbp - 16], 1
+jmp .C_EXIT_2
+.C_NEXT_1:
+cmp 1, 0
+je .C_NEXT_3
+mov QWORD[rbp - 16], 2
+jmp .C_EXIT_2
+.C_NEXT_3:
+mov QWORD[rbp - 16], 3
+.C_EXIT_2:
+mov rax, QWORD[rbp - 16]
+add rsp, 16
+pop rbp
+ret"
+        );
     }
 }
