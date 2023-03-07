@@ -1,7 +1,4 @@
 segment .data
-hello: db `Hello World!\n`, 0
-
-segment .data
 output: db `../../L2/main.asm`, 0
 
 segment .data
@@ -36,7 +33,6 @@ syscall
 pop rbp
 ret
 
-global create_file
 segment .text
 create_file:
 push rbp
@@ -56,7 +52,6 @@ add rsp, 8
 pop rbp
 ret
 
-global close_file
 segment .text
 close_file:
 push rbp
@@ -70,7 +65,6 @@ add rsp, 8
 pop rbp
 ret
 
-global write_file
 segment .text
 write_file:
 push rbp
@@ -88,7 +82,6 @@ add rsp, 24
 pop rbp
 ret
 
-global print
 segment .text
 print:
 push rbp
