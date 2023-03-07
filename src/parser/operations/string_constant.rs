@@ -9,6 +9,7 @@ impl<'a> Parser<'a> {
             panic!("Invalid operand")
         };
 
+        let value = value.replace("\n", "\\n");
         let definition = format!(
             "\
 segment .data

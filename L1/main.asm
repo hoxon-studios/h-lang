@@ -2,7 +2,7 @@ segment .data
 output: db `../../L2/main.asm`, 0
 
 segment .data
-code: db `global _start\n_start:\nret\n`, 0
+code: db `segment .data\nhello: db 'Hello World!', 10, 0\n\nsegment .text\nglobal _start\n_start:\n\nmov rdx, 13\nmov rsi, hello\nmov rdi, 0\nmov rax, 0x01\nsyscall\n\nmov rax, 0x3c\nsyscall\nret\n`, 0
 
 global _start
 segment .text
@@ -13,7 +13,7 @@ sub rsp, 8
 mov rdi, output
 call create_file
 mov QWORD[rbp - 8], rax
-mov rdx, 26
+mov rdx, 171
 mov rsi, code
 mov rdi, QWORD[rbp - 8]
 call write_file
