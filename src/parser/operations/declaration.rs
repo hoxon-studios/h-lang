@@ -13,9 +13,10 @@ impl<'a> Parser<'a> {
             panic!("Invalid operand")
         };
 
-        let scope = self.context.take_scope();
+        let structs = &self.context.structs;
 
         if _type == "ptr" {
+            let scope = self.context.take_scope();
             let symbol = scope
                 .symbols
                 .iter_mut()
@@ -25,8 +26,15 @@ impl<'a> Parser<'a> {
         } else {
             let _type = match _type {
                 "usize" => SymbolType::Usize,
-                _ => panic!("Invalid type"),
+                _ => {
+                    let definition = structs
+                        .iter()
+                        .find(|s| s.name == _type)
+                        .expect("Type not found");
+                    SymbolType::Struct(definition.clone())
+                }
             };
+            let scope = self.context.take_scope();
             let symbol = scope.symbols.iter_mut().find(|s| s.name == label);
             match symbol {
                 Some(symbol) => symbol._type = _type,

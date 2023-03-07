@@ -25,6 +25,10 @@ public fn _start() (
     exit$()
 )
 
+struct Some(x: usize, y: usize)
+
+private fn test(x: Some) ()
+
 private fn exit() ( 
     syscall$(0x3c)
 )

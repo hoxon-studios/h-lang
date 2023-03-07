@@ -2,11 +2,15 @@ const USIZE: usize = 8;
 
 #[derive(Debug)]
 pub struct Context {
+    pub structs: Vec<Struct>,
     pub scopes: Vec<ContextScope>,
 }
 impl Context {
     pub fn init() -> Context {
-        Context { scopes: vec![] }
+        Context {
+            scopes: vec![],
+            structs: vec![],
+        }
     }
     pub fn symbol(&self, label: &str) -> Option<&Symbol> {
         for scope in self.scopes.iter().rev() {
@@ -21,18 +25,76 @@ impl Context {
     }
 
     pub fn address(&self, label: &str) -> String {
+        let parts: Vec<&str> = label.split('.').collect();
+        let label = parts[0];
+        let properties = &parts[1..];
+
         let mut position = 0;
-        for scope in self.scopes.iter().rev() {
+        let mut current_symbol: Option<&Symbol> = None;
+        'pos: for scope in self.scopes.iter().rev() {
             for symbol in &scope.symbols {
                 let size = symbol._type.size();
                 position += size;
                 if symbol.name == label {
-                    return format!("QWORD[rbp - {position}]");
+                    current_symbol = Some(symbol);
+                    break 'pos;
                 }
             }
         }
 
-        return label.to_string();
+        if let Some(current_symbol) = current_symbol {
+            let mut offset = 0;
+            if !properties.is_empty() {
+                let mut current_struct = match &current_symbol._type {
+                    SymbolType::Struct(_struct) => _struct.name.clone(),
+                    _ => panic!("Invalid symbol type"),
+                };
+                for &prop in properties {
+                    let (off, child) = self.property_offset(&current_struct, prop);
+                    if let Some(child) = child {
+                        current_struct = child.name;
+                    }
+                    offset += off;
+                }
+            }
+
+            if offset > 0 {
+                return format!("QWORD[rbp - {position} + {offset}]");
+            } else {
+                return format!("QWORD[rbp - {position}]");
+            }
+        } else {
+            return label.to_string();
+        }
+    }
+
+    pub fn property_offset(&self, _struct: &str, property_name: &str) -> (usize, Option<Struct>) {
+        let mut _struct = self
+            .structs
+            .iter()
+            .find(|s| s.name == _struct)
+            .expect("Invalid struct");
+
+        let mut offset = 0;
+        let mut found: bool = false;
+        let mut child: Option<Struct> = None;
+        for property in &_struct.properties {
+            if property.name == property_name {
+                found = true;
+                if let SymbolType::Struct(_struct) = &property._type {
+                    child = Some(_struct.clone())
+                }
+                break;
+            } else {
+                offset += property._type.size()
+            }
+        }
+
+        if !found {
+            panic!("Property not found")
+        }
+
+        return (offset, child);
     }
 
     pub fn pointer_size(&self, label: &str) -> usize {
@@ -69,15 +131,32 @@ pub struct ContextScope {
     pub labels: usize,
 }
 
-#[derive(Debug)]
+#[derive(PartialEq, Debug, Clone)]
+pub struct Struct {
+    pub name: String,
+    pub properties: Vec<Property>,
+}
+#[derive(PartialEq, Debug, Clone)]
+pub struct Property {
+    pub name: String,
+    pub _type: SymbolType,
+}
+impl Struct {
+    pub fn size(&self) -> usize {
+        self.properties.iter().map(|p| p._type.size()).sum()
+    }
+}
+
+#[derive(PartialEq, Clone, Debug)]
 pub struct Symbol {
     pub name: String,
     pub _type: SymbolType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum SymbolType {
     Usize,
+    Struct(Struct),
     Pointer(Box<SymbolType>),
 }
 
@@ -86,6 +165,7 @@ impl SymbolType {
         match self {
             SymbolType::Usize => USIZE,
             SymbolType::Pointer(_) => USIZE,
+            SymbolType::Struct(_struct) => _struct.size(),
         }
     }
     pub fn pointer_size(&self) -> usize {

@@ -11,9 +11,10 @@ pub mod dereference;
 pub mod export;
 pub mod function;
 pub mod group;
-pub mod loop_statement;
+pub mod r#loop;
 pub mod reference;
-pub mod string_constant;
+pub mod r#string;
+pub mod r#struct;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum Operator {
@@ -31,6 +32,7 @@ pub enum Operation {
     Addition,
     Call,
     Function,
+    Struct,
     String,
     Reference,
     Dereference,
@@ -46,6 +48,7 @@ impl Operation {
     pub fn precedence(&self) -> usize {
         match self {
             Operation::Visibility { .. } => 0,
+            Operation::Struct => 1,
             Operation::Function => 1,
             Operation::String => 1,
             Operation::Sequence => 2,
@@ -68,6 +71,7 @@ impl Operation {
             Operation::Visibility { .. } => true,
             Operation::Function => true,
             Operation::String => true,
+            Operation::Struct => true,
             Operation::Sequence => true,
             Operation::Let => true,
             Operation::Assign => false,
@@ -108,6 +112,8 @@ pub fn eat_operator(code: &str) -> Option<(&str, Operator)> {
         Some((code, Operator::Operation(Operation::Let)))
     } else if let Some(code) = eat_token(code, "$") {
         Some((code, Operator::Operation(Operation::Call)))
+    } else if let Some(code) = eat_token(code, "struct ") {
+        Some((code, Operator::Operation(Operation::Struct)))
     } else if let Some(code) = eat_token(code, "fn ") {
         Some((code, Operator::Operation(Operation::Function)))
     } else if let Some(code) = eat_token(code, "string ") {

@@ -133,6 +133,7 @@ impl<'a> Parser<'a> {
             Operation::Break => self.parse_break(),
             Operation::String => self.parse_string(),
             Operation::BitwiseOr => self.parse_bitwise_or(),
+            Operation::Struct => self.parse_struct(),
         }
     }
 }

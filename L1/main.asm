@@ -25,6 +25,17 @@ pop rbp
 ret
 
 segment .text
+test:
+push rbp
+mov rbp, rsp
+sub rsp, 16
+mov QWORD[rbp - 16], rdi
+mov rax, 0
+add rsp, 16
+pop rbp
+ret
+
+segment .text
 exit:
 push rbp
 mov rbp, rsp
