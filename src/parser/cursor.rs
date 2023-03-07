@@ -71,3 +71,31 @@ pub fn eat_label(code: &str) -> Option<(&str, &str)> {
 
     Some((end, &code[0..length]))
 }
+
+pub fn eat_string(code: &str) -> Option<(&str, &str)> {
+    let code = skip_space(code);
+    let mut chars = code.chars();
+    if let Some('"') = chars.next() {
+        let result = chars.as_str();
+        let mut length = 0;
+        loop {
+            if let Some(next) = chars.next() {
+                if next == '\\' {
+                    if let None = chars.next() {
+                        return None;
+                    } else {
+                        length += 2;
+                    }
+                } else if next == '"' {
+                    return Some((chars.as_str(), &result[0..length]));
+                } else {
+                    length += 1;
+                }
+            } else {
+                return None;
+            }
+        }
+    } else {
+        None
+    }
+}

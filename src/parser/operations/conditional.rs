@@ -14,6 +14,7 @@ impl<'a> Parser<'a> {
             Token::Unit
             | Token::Constant(_)
             | Token::Label(_)
+            | Token::String(_)
             | Token::Result(_)
             | Token::Set(_)
             | Token::Item { .. } => {
@@ -39,7 +40,11 @@ cmp {condition}, 0"
 {condition}
 cmp rax, 0"
             ),
-            Token::Statement { .. } | Token::Set(_) | Token::Item { .. } | Token::Unit => {
+            Token::String(_)
+            | Token::Statement { .. }
+            | Token::Set(_)
+            | Token::Item { .. }
+            | Token::Unit => {
                 panic!("Invalid operand")
             }
         };
@@ -106,6 +111,7 @@ mod tests {
         assert_eq!(
             result,
             "\
+segment .text
 check:
 push rbp
 mov rbp, rsp

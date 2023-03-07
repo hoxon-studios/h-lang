@@ -80,6 +80,7 @@ mov rax, QWORD[rax + 0 * 8]"
             result,
             "\
 global some
+segment .text
 some:
 push rbp
 mov rbp, rsp

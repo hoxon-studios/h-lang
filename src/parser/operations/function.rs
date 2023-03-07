@@ -28,6 +28,10 @@ mov rax, {body}"
                 "\
 mov rax, {body}"
             ),
+            Token::Unit => format!(
+                "\
+mov rax, 0"
+            ),
             _ => panic!("Invalid operand"),
         };
 
@@ -60,9 +64,30 @@ mov rax, {body}"
             .pop()
             .map(|scope| scope.symbols.iter().map(|s| s._type.size()).sum());
 
-        let result = if let Some(stack_size) = stack_size {
-            format!(
+        let result = match body.is_empty() {
+            true => format!(
                 "\
+segment .text
+{label}:
+ret"
+            ),
+            false => match stack_size {
+                Some(stack_size) => match parameters.is_empty() {
+                    true => format!(
+                        "\
+segment .text
+{label}:
+push rbp
+mov rbp, rsp
+sub rsp, {stack_size}
+{body}
+add rsp, {stack_size}
+pop rbp
+ret"
+                    ),
+                    false => format!(
+                        "\
+segment .text
 {label}:
 push rbp
 mov rbp, rsp
@@ -72,10 +97,22 @@ sub rsp, {stack_size}
 add rsp, {stack_size}
 pop rbp
 ret"
-            )
-        } else {
-            format!(
-                "\
+                    ),
+                },
+                None => match parameters.is_empty() {
+                    true => format!(
+                        "\
+segment .text
+{label}:
+push rbp
+mov rbp, rsp
+{body}
+pop rbp
+ret"
+                    ),
+                    false => format!(
+                        "\
+segment .text
 {label}:
 push rbp
 mov rbp, rsp
@@ -83,7 +120,9 @@ mov rbp, rsp
 {body}
 pop rbp
 ret"
-            )
+                    ),
+                },
+            },
         };
 
         self.output.push(Token::Item {
@@ -109,6 +148,7 @@ mod tests {
         assert_eq!(
             result,
             "\
+segment .text
 some:
 push rbp
 mov rbp, rsp
@@ -139,6 +179,7 @@ ret"
             result,
             "\
 global some
+segment .text
 some:
 push rbp
 mov rbp, rsp
@@ -150,6 +191,8 @@ add rax, QWORD[rbp - 16]
 add rsp, 16
 pop rbp
 ret
+
+segment .text
 power:
 push rbp
 mov rbp, rsp

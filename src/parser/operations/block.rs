@@ -5,43 +5,85 @@ impl<'a> Parser<'a> {
         let Some(right) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Statement { body: left, .. }) = self.output.pop() else {
+        let Some(left) = self.output.pop() else {
             panic!("Invalid operand")
         };
 
-        match right {
-            Token::Statement { body: right, .. } => self.output.push(Token::Statement {
-                body: format!(
+        match left {
+            Token::Result(left) => match right {
+                Token::Statement { body: right, .. } => self.output.push(Token::Statement {
+                    body: format!(
+                        "\
+{left}
+{right}"
+                    ),
+                    exit_label: None,
+                }),
+                Token::Result(right) => self.output.push(Token::Result(format!(
                     "\
 {left}
 {right}"
-                ),
-                exit_label: None,
-            }),
-            Token::Result(right) => self.output.push(Token::Result(format!(
-                "\
-{left}
-{right}"
-            ))),
-            Token::Constant(right) => self.output.push(Token::Result(format!(
-                "\
-{left}
-mov rax, {right}"
-            ))),
-            Token::Label(right) => {
-                let right = self.context.address(right);
-                self.output.push(Token::Result(format!(
+                ))),
+                Token::Constant(right) => self.output.push(Token::Result(format!(
                     "\
 {left}
 mov rax, {right}"
-                )))
-            }
-            Token::Unit => self.output.push(Token::Result(format!(
-                "\
+                ))),
+                Token::Label(right) => {
+                    let right = self.context.address(right);
+                    self.output.push(Token::Result(format!(
+                        "\
+{left}
+mov rax, {right}"
+                    )))
+                }
+                Token::Unit => self.output.push(Token::Result(format!(
+                    "\
 {left}
 mov rax, 0"
-            ))),
-            _ => panic!("Invalid operand"),
+                ))),
+                Token::String(_) | Token::Set(_) | Token::Item { .. } => panic!("Invalid operand"),
+            },
+            Token::Statement { body: left, .. } => match right {
+                Token::Statement { body: right, .. } => self.output.push(Token::Statement {
+                    body: format!(
+                        "\
+{left}
+{right}"
+                    ),
+                    exit_label: None,
+                }),
+                Token::Result(right) => self.output.push(Token::Result(format!(
+                    "\
+{left}
+{right}"
+                ))),
+                Token::Constant(right) => self.output.push(Token::Result(format!(
+                    "\
+{left}
+mov rax, {right}"
+                ))),
+                Token::Label(right) => {
+                    let right = self.context.address(right);
+                    self.output.push(Token::Result(format!(
+                        "\
+{left}
+mov rax, {right}"
+                    )))
+                }
+                Token::Unit => self.output.push(Token::Result(format!(
+                    "\
+{left}
+mov rax, 0"
+                ))),
+                Token::String(_) | Token::Set(_) | Token::Item { .. } => panic!("Invalid operand"),
+            },
+            Token::Unit
+            | Token::Constant(_)
+            | Token::Label(_)
+            | Token::String(_)
+            | Token::Set(_)
+            | Token::Item { .. } => panic!("Invalid operand"),
         }
     }
 }

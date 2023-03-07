@@ -80,6 +80,9 @@ impl<'a> Parser<'a> {
             } else if let Some((code, number)) = eat_number(cursor) {
                 parser.output.push(Token::Constant(number));
                 cursor = code;
+            } else if let Some((code, string_literal)) = eat_string(cursor) {
+                parser.output.push(Token::String(string_literal));
+                cursor = code;
             } else if let Some((code, label)) = eat_label(cursor) {
                 parser.output.push(Token::Label(label));
                 cursor = code;
@@ -108,7 +111,7 @@ impl<'a> Parser<'a> {
                 _ => panic!("Invalid token"),
             })
             .collect::<Vec<String>>()
-            .join("\n");
+            .join("\n\n");
     }
 
     pub fn apply(&mut self, operation: Operation) {
@@ -128,6 +131,8 @@ impl<'a> Parser<'a> {
             Operation::Else => self.parse_else_conditional(),
             Operation::Loop => self.parse_loop(),
             Operation::Break => self.parse_break(),
+            Operation::String => self.parse_string(),
+            Operation::BitwiseOr => self.parse_bitwise_or(),
         }
     }
 }

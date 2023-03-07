@@ -67,12 +67,11 @@ pop {reg}"
             _ => format!("call {}", &label),
         };
 
-        let result = format!(
-            "\
-{evaluations}
-{parameters}
-{function_call}"
-        );
+        let result = [evaluations, parameters, function_call]
+            .into_iter()
+            .filter(|s| !s.is_empty())
+            .collect::<Vec<String>>()
+            .join("\n");
 
         self.output.push(Token::Result(result));
     }
@@ -110,7 +109,7 @@ call some_function"
         // ASSERT
         assert_eq!(
             result,
-            "
+            "\
 mov rdx, length
 mov rsi, message
 mov rdi, 0

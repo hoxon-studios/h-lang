@@ -3,6 +3,7 @@ pub enum Token<'a> {
     Unit,
     Constant(&'a str),
     Label(&'a str),
+    String(&'a str),
     Set(Vec<Token<'a>>),
     Statement {
         body: String,
