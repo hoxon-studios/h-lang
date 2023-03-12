@@ -1,4 +1,8 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    context::{Symbol, SymbolType},
+    tokens::Token,
+    Parser,
+};
 
 impl<'a> Parser<'a> {
     pub fn parse_string(&mut self) {
@@ -15,6 +19,11 @@ impl<'a> Parser<'a> {
 segment .data
 {id}: db `{value}`, 0"
         );
+
+        self.context.global.push(Symbol {
+            id: id.to_string(),
+            _type: SymbolType::String,
+        });
 
         self.output.push(Token::Item {
             name: id,

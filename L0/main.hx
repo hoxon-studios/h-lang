@@ -18,16 +18,18 @@ syscall
 ret
 "
 
+struct Out(handler: usize, path: usize:ptr, code: usize:ptr, length: usize)
+
 public fn _start() (
-    handler: usize = create_file$(output);
-    write_file$(handler, code, 171);
-    close_file$(handler);
+    out: Out = 0;
+    out.path = output;
+    out.code = code;
+    out.length = 171;
+    out.handler = create_file$(out.path);
+    write_file$(out.handler, out.code, out.length);
+    close_file$(out.handler);
     exit$()
 )
-
-struct Some(x: usize, y: usize)
-
-private fn test(x: Some) ()
 
 private fn exit() ( 
     syscall$(0x3c)

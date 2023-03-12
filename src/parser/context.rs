@@ -128,6 +128,26 @@ impl Struct {
     pub fn size(&self) -> usize {
         self.properties.iter().map(|p| p._type.size()).sum()
     }
+    pub fn offset(&self, property_name: &str) -> usize {
+        let mut offset = 0;
+        for property in &self.properties {
+            if property.name == property_name {
+                break;
+            } else {
+                offset += property._type.size()
+            }
+        }
+
+        return offset;
+    }
+    pub fn property_type(&self, property_name: &str) -> SymbolType {
+        self.properties
+            .iter()
+            .find(|p| p.name == property_name)
+            .expect("Invalid property")
+            ._type
+            .clone()
+    }
 }
 
 #[derive(PartialEq, Clone, Debug)]
@@ -141,6 +161,7 @@ pub enum SymbolType {
     Usize,
     Struct(Struct),
     Pointer(Box<SymbolType>),
+    String,
 }
 
 impl SymbolType {
@@ -149,6 +170,7 @@ impl SymbolType {
             SymbolType::Usize => USIZE,
             SymbolType::Pointer(_) => USIZE,
             SymbolType::Struct(_struct) => _struct.size(),
+            SymbolType::String => panic!("String is not sized"),
         }
     }
     pub fn pointer_size(&self) -> usize {

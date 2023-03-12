@@ -12,6 +12,7 @@ pub mod export;
 pub mod function;
 pub mod group;
 pub mod r#loop;
+pub mod navigate;
 pub mod reference;
 pub mod r#string;
 pub mod r#struct;
@@ -41,6 +42,7 @@ pub enum Operation {
     Loop,
     Break,
     BitwiseOr,
+    Navigate,
     Visibility { export: bool },
 }
 
@@ -64,6 +66,7 @@ impl Operation {
             Operation::Reference => 12,
             Operation::Dereference => 13,
             Operation::Break => 14,
+            Operation::Navigate => 15,
         }
     }
     pub fn left_associated(&self) -> bool {
@@ -85,6 +88,7 @@ impl Operation {
             Operation::Loop => true,
             Operation::Break => true,
             Operation::BitwiseOr => true,
+            Operation::Navigate => true,
         }
     }
 }
@@ -94,6 +98,8 @@ pub fn eat_operator(code: &str) -> Option<(&str, Operator)> {
         Some((code, Operator::LeftParenthesis))
     } else if let Some(code) = eat_token(code, ")") {
         Some((code, Operator::RightParenthesis))
+    } else if let Some(code) = eat_token(code, ".") {
+        Some((code, Operator::Operation(Operation::Navigate)))
     } else if let Some(code) = eat_token(code, "|") {
         Some((code, Operator::Operation(Operation::BitwiseOr)))
     } else if let Some(code) = eat_token(code, "=") {
