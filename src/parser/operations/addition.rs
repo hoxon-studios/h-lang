@@ -12,82 +12,59 @@ impl<'a> Parser<'a> {
         let left = self.context.resolve(left);
         let right = self.context.resolve(right);
 
-        let result = match left {
-            Token::Constant(left) => match right {
-                Token::Constant(right) => format!(
+        let result = match (left, right) {
+            (Token::Constant(left), Token::Constant(right)) => {
+                format!(
                     "\
 mov rax, {left} + {right}"
-                ),
-                Token::Label(right) => {
-                    let right = right.to_address();
-                    format!(
-                        "\
-mov rax, {right}
-add rax, {left}"
-                    )
-                }
-                Token::Result(right) => {
-                    format!(
-                        "\
-{right}
-add rax, {left}"
-                    )
-                }
-                _ => panic!("Invalid operand"),
-            },
-            Token::Result(left) => match right {
-                Token::Constant(right) => format!(
+                )
+            }
+            (Token::Constant(constant), Token::Label(label))
+            | (Token::Label(label), Token::Constant(constant)) => {
+                let label = label.to_address();
+                format!(
                     "\
-{left}
+mov rax, {label}
+add rax, {constant}"
+                )
+            }
+            (Token::Constant(constant), Token::Result(result))
+            | (Token::Result(result), Token::Constant(constant)) => {
+                format!(
+                    "\
+{result}
+add rax, {constant}"
+                )
+            }
+            (Token::Label(left), Token::Label(right)) => {
+                let left = left.to_address();
+                let right = right.to_address();
+                format!(
+                    "\
+mov rax, {left}
 add rax, {right}"
-                ),
-                Token::Label(right) => {
-                    let right = right.to_address();
-                    format!(
-                        "\
-{left}
-add rax, {right}"
-                    )
-                }
-                Token::Result(right) => format!(
+                )
+            }
+            (Token::Label(label), Token::Result(result))
+            | (Token::Result(result), Token::Label(label)) => {
+                let label = label.to_address();
+                format!(
+                    "\
+{result}
+add rax, {label}"
+                )
+            }
+            (Token::Result(left), Token::Result(right)) => {
+                format!(
                     "\
 {left}
 push rax
 {right}
 pop rdx
 add rax, rdx"
-                ),
-                _ => panic!("Invalid operand"),
-            },
-            Token::Label(left) => match right {
-                Token::Constant(right) => {
-                    let left = left.to_address();
-                    format!(
-                        "\
-mov rax, {left}
-add rax, {right}"
-                    )
-                }
-                Token::Label(right) => {
-                    let left = left.to_address();
-                    let right = right.to_address();
-                    format!(
-                        "\
-mov rax, {left}
-add rax, {right}"
-                    )
-                }
-                Token::Result(right) => {
-                    let left = left.to_address();
-                    format!(
-                        "\
-{right}
-add rax, {left}"
-                    )
-                }
-                _ => panic!("Invalid operand"),
-            },
-            _ => panic!("Invalid operand"),
+                )
+            }
+            _ => panic!("Invalid operands"),
         };
 
         self.output.push(Token::Result(result));
