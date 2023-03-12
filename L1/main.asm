@@ -9,29 +9,18 @@ segment .text
 _start:
 push rbp
 mov rbp, rsp
-sub rsp, 40
-mov QWORD[rbp - 32], 0
-mov rax, output
-mov QWORD[rbp - 32 + 8], rax
-mov rax, code
-mov QWORD[rbp - 32 + 16], rax
-mov QWORD[rbp - 32 + 24], 171
-mov rdi, QWORD[rbp - 32 + 8]
+sub rsp, 8
+mov rdi, output
 call create_file
-mov QWORD[rbp - 32], rax
-lea rax, QWORD[rbp - 32]
-mov QWORD[rbp - 40], rax
-mov rax, QWORD[rbp - 40]
-add rax, 24
-push rax
-pop rdx
-mov rsi, QWORD[rbp - 32 + 16]
-mov rdi, QWORD[rbp - 32]
+mov QWORD[rbp - 8], rax
+mov rdx, 171
+mov rsi, code
+mov rdi, QWORD[rbp - 8]
 call write_file
-mov rdi, QWORD[rbp - 32]
+mov rdi, QWORD[rbp - 8]
 call close_file
 call exit
-add rsp, 40
+add rsp, 8
 pop rbp
 ret
 
