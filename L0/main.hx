@@ -26,7 +26,9 @@ public fn _start() (
     out.code = code;
     out.length = 171;
     out.handler = create_file$(out.path);
-    write_file$(out.handler, out.code, out.length);
+    pointer: Out:ptr = &out;
+
+    write_file$(out.handler, out.code, pointer.length);
     close_file$(out.handler);
     exit$()
 )
