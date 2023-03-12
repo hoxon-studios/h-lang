@@ -5,28 +5,35 @@ impl<'a> Parser<'a> {
         let Some(value) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Label(label)) = self.output.pop() else {
+        let Some(address) = self.output.pop() else {
             panic!("Invalid operand")
         };
 
-        let label = self.context.address(label);
+        let id = match address {
+            Token::Id(id) => self.context.label(id).to_address(),
+            Token::Label(label) => label.to_address(),
+            Token::Result(_) => format!("QWORD[rax]"),
+            _ => panic!("Invalid operand"),
+        };
+
+        let value = self.context.resolve(value);
         let body = match value {
             Token::Constant(value) => format!(
                 "\
-mov {label}, {value}"
+mov {id}, {value}"
             ),
             Token::Label(value) => {
-                let value = self.context.address(value);
+                let value = value.to_address();
                 format!(
                     "\
 mov rax, {value}
-mov {label}, rax"
+mov {id}, rax"
                 )
             }
             Token::Result(value) => format!(
                 "\
 {value}
-mov {label}, rax"
+mov {id}, rax"
             ),
             _ => panic!("Invalid operand"),
         };
@@ -44,14 +51,14 @@ mod tests {
 
     #[test]
     fn it_compiles_assignment() {
-        let code = "some_var = 1";
+        let code = "some_var: usize = 1";
         // ACT
         let result = Parser::parse(code);
         // ASSERT
         assert_eq!(
             result,
             "\
-mov some_var, 1"
+mov QWORD[rbp - 8], 1"
         );
     }
 }

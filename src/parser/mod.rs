@@ -83,8 +83,8 @@ impl<'a> Parser<'a> {
             } else if let Some((code, string_literal)) = eat_string(cursor) {
                 parser.output.push(Token::String(string_literal));
                 cursor = code;
-            } else if let Some((code, label)) = eat_label(cursor) {
-                parser.output.push(Token::Label(label));
+            } else if let Some((code, id)) = eat_id(cursor) {
+                parser.output.push(Token::Id(id));
                 cursor = code;
             } else {
                 break 'outer;

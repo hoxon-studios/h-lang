@@ -10,7 +10,7 @@ impl<'a> Parser<'a> {
         let Some(expression) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Label(label)) = self.output.pop() else {
+        let Some(Token::Id(id)) = self.output.pop() else {
             panic!("Invalid operand")
         };
         let parameters = match expression {
@@ -19,7 +19,7 @@ impl<'a> Parser<'a> {
             _ => vec![expression],
         };
 
-        let convention = match label {
+        let convention = match id {
             "syscall" => LINUX_SYSCALL_CONVENTION,
             _ => SYSTEM_V_AMD64_ABI_CONVENTION,
         };
@@ -46,8 +46,15 @@ push rax"
                     "\
 mov {reg}, {value}"
                 ),
+                Token::Id(value) => {
+                    let value = self.context.label(value).to_address();
+                    format!(
+                        "\
+mov {reg}, {value}"
+                    )
+                }
                 Token::Label(value) => {
-                    let value = self.context.address(value);
+                    let value = value.to_address();
                     format!(
                         "\
 mov {reg}, {value}"
@@ -62,9 +69,9 @@ pop {reg}"
             .collect::<Vec<String>>()
             .join("\n");
 
-        let function_call = match label {
+        let function_call = match id {
             "syscall" => "syscall".to_string(),
-            _ => format!("call {}", &label),
+            _ => format!("call {}", &id),
         };
 
         let result = [evaluations, parameters, function_call]
@@ -103,15 +110,15 @@ call some_function"
 
     #[test]
     fn it_compiles_system_call() {
-        let code = "syscall$(0x01, 0, message, length)";
+        let code = "syscall$(0x01, 0, 0, 10)";
         // ACT
         let result = Parser::parse(code);
         // ASSERT
         assert_eq!(
             result,
             "\
-mov rdx, length
-mov rsi, message
+mov rdx, 10
+mov rsi, 0
 mov rdi, 0
 mov rax, 0x01
 syscall"

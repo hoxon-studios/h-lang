@@ -1,32 +1,33 @@
 use crate::parser::{
-    context::{Symbol, SymbolType},
-    tokens::Token,
+    context::SymbolType,
+    tokens::{Label, Token},
     Parser,
 };
 
 impl<'a> Parser<'a> {
     pub fn parse_declaration(&mut self) {
-        let Some(Token::Label(_type)) = self.output.pop() else {
+        let Some(Token::Id(_type)) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Label(label)) = self.output.pop() else {
+        let Some(left) = self.output.pop() else {
             panic!("Invalid operand")
         };
-
-        let structs = &self.context.structs;
 
         if _type == "ptr" {
-            let scope = self.context.take_scope();
-            let symbol = scope
-                .symbols
-                .iter_mut()
-                .find(|s| s.name == label)
-                .expect("Symbol not found");
-            symbol._type = SymbolType::Pointer(Box::new(symbol._type.clone()));
+            match left {
+                Token::Label(Label { id, _type, .. }) => {
+                    self.context
+                        .declare(id, &SymbolType::Pointer(Box::new(_type.clone())));
+                    let label = self.context.label(id);
+                    self.output.push(Token::Label(label.clone()));
+                }
+                _ => panic!("Invalid operand"),
+            }
         } else {
             let _type = match _type {
                 "usize" => SymbolType::Usize,
                 _ => {
+                    let structs = &self.context.structs;
                     let definition = structs
                         .iter()
                         .find(|s| s.name == _type)
@@ -34,17 +35,14 @@ impl<'a> Parser<'a> {
                     SymbolType::Struct(definition.clone())
                 }
             };
-            let scope = self.context.take_scope();
-            let symbol = scope.symbols.iter_mut().find(|s| s.name == label);
-            match symbol {
-                Some(symbol) => symbol._type = _type,
-                None => scope.symbols.push(Symbol {
-                    name: label.to_string(),
-                    _type,
-                }),
-            }
+            let id = match left {
+                Token::Id(id) => id,
+                Token::Label(Label { id, .. }) => id,
+                _ => panic!("Invalid operand"),
+            };
+            self.context.declare(id, &_type);
+            let label = self.context.label(id);
+            self.output.push(Token::Label(label.clone()));
         }
-
-        self.output.push(Token::Label(label));
     }
 }

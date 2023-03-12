@@ -11,25 +11,18 @@ impl<'a> Parser<'a> {
 
         let body = match body {
             Token::Statement { body, .. } => body,
-            Token::Unit
-            | Token::Constant(_)
-            | Token::Label(_)
-            | Token::String(_)
-            | Token::Result(_)
-            | Token::Set(_)
-            | Token::Item { .. } => {
-                panic!("Invalid operand")
-            }
+            _ => panic!("Invalid operand"),
         };
         let exit_label = self.context.take_label("C_EXIT");
         let next_label = self.context.take_label("C_NEXT");
+        let condition = self.context.resolve(condition);
         let condition = match condition {
             Token::Constant(condition) => format!(
                 "\
 cmp {condition}, 0"
             ),
             Token::Label(condition) => {
-                let condition = self.context.address(condition);
+                let condition = condition.to_address();
                 format!(
                     "\
 cmp {condition}, 0"
@@ -40,13 +33,7 @@ cmp {condition}, 0"
 {condition}
 cmp rax, 0"
             ),
-            Token::String(_)
-            | Token::Statement { .. }
-            | Token::Set(_)
-            | Token::Item { .. }
-            | Token::Unit => {
-                panic!("Invalid operand")
-            }
+            _ => panic!("Invalid operand"),
         };
 
         let body = format!(

@@ -9,6 +9,9 @@ impl<'a> Parser<'a> {
             panic!("Invalid operand")
         };
 
+        let left = self.context.resolve(left);
+        let right = self.context.resolve(right);
+
         match left {
             Token::Result(left) => match right {
                 Token::Statement { body: right, .. } => self.output.push(Token::Statement {
@@ -30,7 +33,7 @@ impl<'a> Parser<'a> {
 mov rax, {right}"
                 ))),
                 Token::Label(right) => {
-                    let right = self.context.address(right);
+                    let right = right.to_address();
                     self.output.push(Token::Result(format!(
                         "\
 {left}
@@ -42,7 +45,7 @@ mov rax, {right}"
 {left}
 mov rax, 0"
                 ))),
-                Token::String(_) | Token::Set(_) | Token::Item { .. } => panic!("Invalid operand"),
+                _ => panic!("Invalid operand"),
             },
             Token::Statement { body: left, .. } => match right {
                 Token::Statement { body: right, .. } => self.output.push(Token::Statement {
@@ -64,7 +67,7 @@ mov rax, 0"
 mov rax, {right}"
                 ))),
                 Token::Label(right) => {
-                    let right = self.context.address(right);
+                    let right = right.to_address();
                     self.output.push(Token::Result(format!(
                         "\
 {left}
@@ -76,14 +79,9 @@ mov rax, {right}"
 {left}
 mov rax, 0"
                 ))),
-                Token::String(_) | Token::Set(_) | Token::Item { .. } => panic!("Invalid operand"),
+                _ => panic!("Invalid operand"),
             },
-            Token::Unit
-            | Token::Constant(_)
-            | Token::Label(_)
-            | Token::String(_)
-            | Token::Set(_)
-            | Token::Item { .. } => panic!("Invalid operand"),
+            _ => panic!("Invalid operand"),
         }
     }
 }

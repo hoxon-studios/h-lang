@@ -1,4 +1,7 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    tokens::{Label, Token},
+    Parser,
+};
 
 use super::call::SYSTEM_V_AMD64_ABI_CONVENTION;
 
@@ -10,15 +13,17 @@ impl<'a> Parser<'a> {
         let Some(parameters) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Label(label)) = self.output.pop() else {
+        let Some(Token::Id(id)) = self.output.pop() else {
             panic!("Invalid operand")
         };
+
+        let body = self.context.resolve(body);
 
         let body = match body {
             Token::Result(body) => body,
             Token::Statement { body, .. } => body,
             Token::Label(body) => {
-                let body = self.context.address(body);
+                let body = body.to_address();
                 format!(
                     "\
 mov rax, {body}"
@@ -37,12 +42,12 @@ mov rax, 0"
 
         let parameters = match parameters {
             Token::Set(parameters) => parameters
-                .iter()
+                .into_iter()
                 .map(|p| match p {
-                    &Token::Label(label) => label,
+                    Token::Label(label) => label,
                     _ => panic!("Invalid operand"),
                 })
-                .collect::<Vec<&str>>(),
+                .collect::<Vec<Label>>(),
             Token::Unit => vec![],
             Token::Label(label) => vec![label],
             _ => panic!("Invalid operand"),
@@ -52,8 +57,8 @@ mov rax, 0"
             .iter()
             .zip(SYSTEM_V_AMD64_ABI_CONVENTION)
             .map(|(p, reg)| {
-                let label = self.context.address(p);
-                format!("mov {label}, {reg}")
+                let address = p.to_address();
+                format!("mov {address}, {reg}")
             })
             .collect::<Vec<String>>()
             .join("\n");
@@ -68,7 +73,7 @@ mov rax, 0"
             true => format!(
                 "\
 segment .text
-{label}:
+{id}:
 ret"
             ),
             false => match stack_size {
@@ -76,7 +81,7 @@ ret"
                     true => format!(
                         "\
 segment .text
-{label}:
+{id}:
 push rbp
 mov rbp, rsp
 sub rsp, {stack_size}
@@ -88,7 +93,7 @@ ret"
                     false => format!(
                         "\
 segment .text
-{label}:
+{id}:
 push rbp
 mov rbp, rsp
 sub rsp, {stack_size}
@@ -103,7 +108,7 @@ ret"
                     true => format!(
                         "\
 segment .text
-{label}:
+{id}:
 push rbp
 mov rbp, rsp
 {body}
@@ -113,7 +118,7 @@ ret"
                     false => format!(
                         "\
 segment .text
-{label}:
+{id}:
 push rbp
 mov rbp, rsp
 {parameters}
@@ -126,7 +131,7 @@ ret"
         };
 
         self.output.push(Token::Item {
-            name: label,
+            name: id,
             definition: result,
         });
     }

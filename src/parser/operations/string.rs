@@ -5,7 +5,7 @@ impl<'a> Parser<'a> {
         let Some(Token::String(value)) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Label(name)) = self.output.pop() else {
+        let Some(Token::Id(id)) = self.output.pop() else {
             panic!("Invalid operand")
         };
 
@@ -13,10 +13,13 @@ impl<'a> Parser<'a> {
         let definition = format!(
             "\
 segment .data
-{name}: db `{value}`, 0"
+{id}: db `{value}`, 0"
         );
 
-        self.output.push(Token::Item { name, definition });
+        self.output.push(Token::Item {
+            name: id,
+            definition,
+        });
     }
 }
 

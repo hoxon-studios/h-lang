@@ -49,7 +49,7 @@ pub fn eat_token<'a>(code: &'a str, token: &'static str) -> Option<&'a str> {
     }
 }
 
-pub fn eat_label(code: &str) -> Option<(&str, &str)> {
+pub fn eat_id(code: &str) -> Option<(&str, &str)> {
     let mut cursor = code.chars();
     let mut is_start = true;
 
@@ -67,10 +67,6 @@ pub fn eat_label(code: &str) -> Option<(&str, &str)> {
             match cursor.next() {
                 Some('_' | 'A'..='Z' | 'a'..='z' | '0'..='9') => {
                     length += 1;
-                }
-                Some('.') => {
-                    length += 1;
-                    is_start = true;
                 }
                 _ => {
                     break;

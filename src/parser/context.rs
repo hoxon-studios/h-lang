@@ -1,21 +1,25 @@
+use super::tokens::{Label, LabelAddress, Token};
+
 const USIZE: usize = 8;
 
 #[derive(Debug)]
 pub struct Context {
     pub structs: Vec<Struct>,
+    pub global: Vec<Symbol>,
     pub scopes: Vec<ContextScope>,
 }
 impl Context {
     pub fn init() -> Context {
         Context {
+            global: vec![],
             scopes: vec![],
             structs: vec![],
         }
     }
-    pub fn symbol(&self, label: &str) -> Option<&Symbol> {
+    fn symbol(&self, id: &str) -> Option<&Symbol> {
         for scope in self.scopes.iter().rev() {
             for symbol in &scope.symbols {
-                if symbol.name == label {
+                if symbol.id == id {
                     return Some(symbol);
                 }
             }
@@ -24,81 +28,60 @@ impl Context {
         return None;
     }
 
-    pub fn address(&self, label: &str) -> String {
-        let parts: Vec<&str> = label.split('.').collect();
-        let label = parts[0];
-        let properties = &parts[1..];
+    pub fn declare(&mut self, id: &str, _type: &SymbolType) {
+        let scope = self.take_scope();
+        let symbol = scope.symbols.iter_mut().find(|s| s.id == id);
+        match symbol {
+            Some(symbol) => symbol._type = _type.clone(),
+            None => scope.symbols.push(Symbol {
+                id: id.to_string(),
+                _type: _type.clone(),
+            }),
+        }
+    }
 
+    pub fn resolve<'a>(&self, token: Token<'a>) -> Token<'a> {
+        if let Token::Id(id) = token {
+            Token::Label(self.label(id))
+        } else {
+            token
+        }
+    }
+
+    pub fn label<'a>(&self, id: &'a str) -> Label<'a> {
         let mut position = 0;
-        let mut current_symbol: Option<&Symbol> = None;
-        'pos: for scope in self.scopes.iter().rev() {
+        for scope in self.scopes.iter().rev() {
             for symbol in &scope.symbols {
                 let size = symbol._type.size();
                 position += size;
-                if symbol.name == label {
-                    current_symbol = Some(symbol);
-                    break 'pos;
+                if symbol.id == id {
+                    return Label {
+                        id,
+                        _type: symbol._type.clone(),
+                        address: LabelAddress::Stack {
+                            position,
+                            offset: 0,
+                        },
+                    };
                 }
             }
         }
 
-        if let Some(current_symbol) = current_symbol {
-            let mut offset = 0;
-            if !properties.is_empty() {
-                let mut current_struct = match &current_symbol._type {
-                    SymbolType::Struct(_struct) => _struct.name.clone(),
-                    _ => panic!("Invalid symbol type"),
+        for symbol in &self.global {
+            if symbol.id == id {
+                return Label {
+                    id,
+                    _type: symbol._type.clone(),
+                    address: LabelAddress::Global { label: id },
                 };
-                for &prop in properties {
-                    let (off, child) = self.property_offset(&current_struct, prop);
-                    if let Some(child) = child {
-                        current_struct = child.name;
-                    }
-                    offset += off;
-                }
             }
-
-            if offset > 0 {
-                return format!("QWORD[rbp - {position} + {offset}]");
-            } else {
-                return format!("QWORD[rbp - {position}]");
-            }
-        } else {
-            return label.to_string();
         }
+
+        panic!("Invalid identifier")
     }
 
-    pub fn property_offset(&self, _struct: &str, property_name: &str) -> (usize, Option<Struct>) {
-        let mut _struct = self
-            .structs
-            .iter()
-            .find(|s| s.name == _struct)
-            .expect("Invalid struct");
-
-        let mut offset = 0;
-        let mut found: bool = false;
-        let mut child: Option<Struct> = None;
-        for property in &_struct.properties {
-            if property.name == property_name {
-                found = true;
-                if let SymbolType::Struct(_struct) = &property._type {
-                    child = Some(_struct.clone())
-                }
-                break;
-            } else {
-                offset += property._type.size()
-            }
-        }
-
-        if !found {
-            panic!("Property not found")
-        }
-
-        return (offset, child);
-    }
-
-    pub fn pointer_size(&self, label: &str) -> usize {
-        let symbol = self.symbol(label).expect("Symbol not found");
+    pub fn pointer_size(&self, id: &str) -> usize {
+        let symbol = self.symbol(id).expect("Symbol not found");
         symbol._type.pointer_size()
     }
 
@@ -149,7 +132,7 @@ impl Struct {
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct Symbol {
-    pub name: String,
+    pub id: String,
     pub _type: SymbolType,
 }
 
@@ -172,6 +155,21 @@ impl SymbolType {
         match self {
             SymbolType::Pointer(_type) => _type.as_ref().size(),
             _ => panic!("Invalid pointer"),
+        }
+    }
+}
+
+impl<'a> Label<'a> {
+    pub fn to_address(&self) -> String {
+        match self.address {
+            LabelAddress::Global { label } => label.to_string(),
+            LabelAddress::Stack { position, offset } => {
+                if offset > 0 {
+                    format!("QWORD[rbp - {position} + {offset}]")
+                } else {
+                    format!("QWORD[rbp - {position}]")
+                }
+            }
         }
     }
 }

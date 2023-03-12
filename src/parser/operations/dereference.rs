@@ -5,47 +5,54 @@ impl<'a> Parser<'a> {
         let Some(index) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Label(label)) = self.output.pop() else {
+        let Some(label) = self.output.pop() else {
             panic!("Invalid operand")
         };
 
-        let result = match index {
-            Token::Constant(index) => {
-                let size = self.context.pointer_size(label);
-                let label = self.context.address(label);
-                format!(
-                    "\
-mov rax, {label}
+        let label = self.context.resolve(label);
+        let index = self.context.resolve(index);
+
+        if let Token::Label(label) = label {
+            let result = match index {
+                Token::Constant(index) => {
+                    let size = self.context.pointer_size(label.id);
+                    let address = label.to_address();
+                    format!(
+                        "\
+mov rax, {address}
 mov rax, QWORD[rax + {index} * {size}]"
-                )
-            }
-            Token::Label(index) => {
-                let size = self.context.pointer_size(label);
-                let label = self.context.address(label);
-                let index = self.context.address(index);
-                format!(
-                    "\
+                    )
+                }
+                Token::Label(index) => {
+                    let size = self.context.pointer_size(label.id);
+                    let address = label.to_address();
+                    let index = index.to_address();
+                    format!(
+                        "\
 mov rax, {index}
 imul rax, {size}
-add rax, {label}
+add rax, {address}
 mov rax, QWORD[rax]"
-                )
-            }
-            Token::Result(index) => {
-                let size = self.context.pointer_size(label);
-                let label = self.context.address(label);
-                format!(
-                    "\
+                    )
+                }
+                Token::Result(index) => {
+                    let size = self.context.pointer_size(label.id);
+                    let address = label.to_address();
+                    format!(
+                        "\
 {index}
 imul rax, {size}
-add rax, {label}
+add rax, {address}
 mov rax, QWORD[rax]"
-                )
-            }
-            _ => panic!("Invalid operand"),
-        };
+                    )
+                }
+                _ => panic!("Invalid operand"),
+            };
 
-        self.output.push(Token::Result(result));
+            self.output.push(Token::Result(result));
+        } else {
+            panic!("Invalid operand")
+        }
     }
 }
 

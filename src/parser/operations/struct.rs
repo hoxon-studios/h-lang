@@ -9,7 +9,7 @@ impl<'a> Parser<'a> {
         let Some(_) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Label(name)) = self.output.pop() else {
+        let Some(Token::Id(id)) = self.output.pop() else {
             panic!("Invalid operand")
         };
 
@@ -21,12 +21,12 @@ impl<'a> Parser<'a> {
             .symbols
             .iter()
             .map(|s| Property {
-                name: s.name.to_string(),
+                name: s.id.to_string(),
                 _type: s._type.clone(),
             })
             .collect::<Vec<Property>>();
         let _struct = Struct {
-            name: name.to_string(),
+            name: id.to_string(),
             properties,
         };
 

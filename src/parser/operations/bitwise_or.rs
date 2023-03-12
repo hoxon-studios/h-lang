@@ -9,6 +9,9 @@ impl<'a> Parser<'a> {
             panic!("Invalid operand")
         };
 
+        let left = self.context.resolve(left);
+        let right = self.context.resolve(right);
+
         let result = match left {
             Token::Constant(left) => match right {
                 Token::Constant(right) => format!(
@@ -16,7 +19,7 @@ impl<'a> Parser<'a> {
 mov rax, {left} | {right}"
                 ),
                 Token::Label(right) => {
-                    let right = self.context.address(right);
+                    let right = right.to_address();
                     format!(
                         "\
 mov rax, {right}
@@ -28,18 +31,12 @@ or rax, {left}"
 {right}
 or rax, {left}"
                 ),
-                Token::String(_)
-                | Token::Set(_)
-                | Token::Statement { .. }
-                | Token::Unit
-                | Token::Item { .. } => {
-                    panic!("Invalid operand")
-                }
+                _ => panic!("Invalid operand"),
             },
             Token::Label(left) => match right {
                 Token::Label(right) => {
-                    let left = self.context.address(left);
-                    let right = self.context.address(right);
+                    let left = left.to_address();
+                    let right = right.to_address();
                     format!(
                         "\
 mov rax, {left}
@@ -47,7 +44,7 @@ or rax, {right}"
                     )
                 }
                 Token::Result(right) => {
-                    let left = self.context.address(left);
+                    let left = left.to_address();
                     format!(
                         "\
 {right}
@@ -55,24 +52,18 @@ or rax, {left}"
                     )
                 }
                 Token::Constant(right) => {
-                    let left = self.context.address(left);
+                    let left = left.to_address();
                     format!(
                         "\
 mov rax, {left}
 or rax, {right}"
                     )
                 }
-                Token::String(_)
-                | Token::Set(_)
-                | Token::Statement { .. }
-                | Token::Unit
-                | Token::Item { .. } => {
-                    panic!("Invalid operand")
-                }
+                _ => panic!("Invalid operand"),
             },
             Token::Result(left) => match right {
                 Token::Label(right) => {
-                    let right = self.context.address(right);
+                    let right = right.to_address();
                     format!(
                         "\
 {left}
@@ -92,21 +83,9 @@ or rax, rdx"
 {left}
 or rax, {right}"
                 ),
-                Token::String(_)
-                | Token::Set(_)
-                | Token::Statement { .. }
-                | Token::Unit
-                | Token::Item { .. } => {
-                    panic!("Invalid operand")
-                }
+                _ => panic!("Invalid operand"),
             },
-            Token::String(_)
-            | Token::Set(_)
-            | Token::Statement { .. }
-            | Token::Unit
-            | Token::Item { .. } => {
-                panic!("Invalid operand")
-            }
+            _ => panic!("Invalid operand"),
         };
 
         self.output.push(Token::Result(result));
