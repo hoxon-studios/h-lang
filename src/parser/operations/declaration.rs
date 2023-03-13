@@ -26,6 +26,7 @@ impl<'a> Parser<'a> {
         } else {
             let _type = match _type {
                 "usize" => SymbolType::Usize,
+                "byte" => SymbolType::Byte,
                 _ => {
                     let structs = &self.context.structs;
                     let definition = structs

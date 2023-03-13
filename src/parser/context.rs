@@ -1,6 +1,7 @@
 use super::tokens::{Label, LabelAddress, Token};
 
 const USIZE: usize = 8;
+const BYTE: usize = 1;
 
 #[derive(Debug)]
 pub struct Context {
@@ -159,6 +160,7 @@ pub struct Symbol {
 #[derive(PartialEq, Debug, Clone)]
 pub enum SymbolType {
     Usize,
+    Byte,
     Struct(Struct),
     Pointer(Box<SymbolType>),
     String,
@@ -168,6 +170,7 @@ impl SymbolType {
     pub fn size(&self) -> usize {
         match self {
             SymbolType::Usize => USIZE,
+            SymbolType::Byte => BYTE,
             SymbolType::Pointer(_) => USIZE,
             SymbolType::Struct(_struct) => _struct.size(),
             SymbolType::String => panic!("String is not sized"),
