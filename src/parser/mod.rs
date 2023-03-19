@@ -3,6 +3,7 @@ use self::{context::Context, cursor::*, operations::*, tokens::*};
 pub mod context;
 pub mod cursor;
 pub mod operations;
+pub mod resolve;
 pub mod tokens;
 
 #[derive(Debug)]
@@ -78,13 +79,15 @@ impl<'a> Parser<'a> {
 
                 cursor = code;
             } else if let Some((code, number)) = eat_number(cursor) {
-                parser.output.push(Token::Constant(number));
+                parser.output.push(Token::Constant(Constant(number)));
                 cursor = code;
             } else if let Some((code, string_literal)) = eat_string(cursor) {
-                parser.output.push(Token::String(string_literal));
+                parser
+                    .output
+                    .push(Token::String(StringLiteral(string_literal)));
                 cursor = code;
             } else if let Some((code, id)) = eat_id(cursor) {
-                parser.output.push(Token::Id(id));
+                parser.output.push(Token::Id(Id(id)));
                 cursor = code;
             } else {
                 break 'outer;
@@ -105,9 +108,14 @@ impl<'a> Parser<'a> {
             .output
             .iter()
             .map(|token| match token {
-                Token::Result(value) => value.clone(),
-                Token::Statement { body, .. } => body.clone(),
-                Token::Item { definition, .. } => definition.clone(),
+                Token::Result(Code(value)) => value.clone(),
+                Token::Statement(Statement {
+                    body: Code(body), ..
+                }) => body.clone(),
+                Token::Definition(Definition {
+                    definition: Code(definition),
+                    ..
+                }) => definition.clone(),
                 _ => panic!("Invalid token"),
             })
             .collect::<Vec<String>>()

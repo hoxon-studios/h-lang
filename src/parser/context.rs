@@ -1,4 +1,4 @@
-use super::tokens::{Label, LabelAddress, Token};
+use super::tokens::{Id, Label, LabelAddress, Token};
 
 const USIZE: usize = 8;
 const BYTE: usize = 1;
@@ -42,7 +42,7 @@ impl Context {
     }
 
     pub fn resolve<'a>(&self, token: Token<'a>) -> Token<'a> {
-        if let Token::Id(id) = token {
+        if let Token::Id(Id(id)) = token {
             Token::Label(self.label(id))
         } else {
             token

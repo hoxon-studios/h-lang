@@ -3,21 +3,42 @@ use super::context::SymbolType;
 #[derive(PartialEq, Debug, Clone)]
 pub enum Token<'a> {
     Unit,
-    Constant(&'a str),
-    Id(&'a str),
-    String(&'a str),
-    Set(Vec<Token<'a>>),
-    Statement {
-        body: String,
-        exit_label: Option<String>,
-    },
+    Constant(Constant<'a>),
+    Id(Id<'a>),
+    String(StringLiteral<'a>),
+    Set(TokenSet<'a>),
+    Statement(Statement),
     Label(Label<'a>),
-    Result(String),
-    Item {
-        name: &'a str,
-        definition: String,
-    },
+    Result(Code),
+    Definition(Definition<'a>),
 }
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct Constant<'a>(pub &'a str);
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct Id<'a>(pub &'a str);
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct StringLiteral<'a>(pub &'a str);
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct TokenSet<'a>(pub Vec<Token<'a>>);
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct Statement {
+    pub body: Code,
+    pub exit_label: Option<String>,
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct Definition<'a> {
+    pub name: &'a str,
+    pub definition: Code,
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct Code(pub String);
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct Label<'a> {

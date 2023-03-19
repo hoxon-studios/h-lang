@@ -1,4 +1,7 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    tokens::{Code, Constant, Statement, Token},
+    Parser,
+};
 
 impl<'a> Parser<'a> {
     pub fn parse_if_conditional(&mut self) {
@@ -10,14 +13,16 @@ impl<'a> Parser<'a> {
         };
 
         let body = match body {
-            Token::Statement { body, .. } => body,
+            Token::Statement(Statement {
+                body: Code(body), ..
+            }) => body,
             _ => panic!("Invalid operand"),
         };
         let exit_label = self.context.take_label("C_EXIT");
         let next_label = self.context.take_label("C_NEXT");
         let condition = self.context.resolve(condition);
         let condition = match condition {
-            Token::Constant(condition) => format!(
+            Token::Constant(Constant(condition)) => format!(
                 "\
 cmp {condition}, 0"
             ),
@@ -28,7 +33,7 @@ cmp {condition}, 0"
 cmp {condition}, 0"
                 )
             }
-            Token::Result(condition) => format!(
+            Token::Result(Code(condition)) => format!(
                 "\
 {condition}
 cmp rax, 0"
@@ -46,17 +51,17 @@ jmp {exit_label}
 {exit_label}:"
         );
 
-        self.output.push(Token::Statement {
-            body,
+        self.output.push(Token::Statement(Statement {
+            body: Code(body),
             exit_label: Some(exit_label),
-        });
+        }));
     }
 
     pub fn parse_else_conditional(&mut self) {
-        let Some(Token::Statement { body: right, exit_label: right_exit }) = self.output.pop() else {
+        let Some(Token::Statement(Statement { body: Code(right), exit_label: right_exit })) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Statement { body: left, exit_label: Some(left_exit) }) = self.output.pop() else {
+        let Some(Token::Statement(Statement { body: Code(left), exit_label: Some(left_exit) })) = self.output.pop() else {
             panic!("Invalid operand")
         };
 
@@ -74,10 +79,10 @@ jmp {exit_label}
             }
         };
 
-        self.output.push(Token::Statement {
-            body,
+        self.output.push(Token::Statement(Statement {
+            body: Code(body),
             exit_label: right_exit.clone(),
-        });
+        }));
     }
 }
 

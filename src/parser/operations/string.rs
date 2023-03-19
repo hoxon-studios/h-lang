@@ -1,15 +1,15 @@
 use crate::parser::{
     context::{Symbol, SymbolType},
-    tokens::Token,
+    tokens::{Code, Definition, Id, StringLiteral, Token},
     Parser,
 };
 
 impl<'a> Parser<'a> {
     pub fn parse_string(&mut self) {
-        let Some(Token::String(value)) = self.output.pop() else {
+        let Some(Token::String(StringLiteral(value))) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Id(id)) = self.output.pop() else {
+        let Some(Token::Id(Id(id))) = self.output.pop() else {
             panic!("Invalid operand")
         };
 
@@ -25,10 +25,10 @@ segment .data
             _type: SymbolType::String,
         });
 
-        self.output.push(Token::Item {
+        self.output.push(Token::Definition(Definition {
             name: id,
-            definition,
-        });
+            definition: Code(definition),
+        }));
     }
 }
 

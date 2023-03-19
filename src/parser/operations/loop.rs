@@ -1,8 +1,11 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    tokens::{Code, Statement, Token},
+    Parser,
+};
 
 impl<'a> Parser<'a> {
     pub fn parse_loop(&mut self) {
-        let Some(Token::Statement { body, .. }) = self.output.pop() else {
+        let Some(Token::Statement(Statement { body: Code(body), .. })) = self.output.pop() else {
             panic!("Invalid operand")
         };
 
@@ -17,18 +20,18 @@ jmp {start_label}
 {end_label}:"
         );
 
-        self.output.push(Token::Statement {
-            body: result,
+        self.output.push(Token::Statement(Statement {
+            body: Code(result),
             exit_label: None,
-        });
+        }));
     }
 
     pub fn parse_break(&mut self) {
         let result = format!("jmp {{break}}");
-        self.output.push(Token::Statement {
-            body: result,
+        self.output.push(Token::Statement(Statement {
+            body: Code(result),
             exit_label: None,
-        });
+        }));
     }
 }
 

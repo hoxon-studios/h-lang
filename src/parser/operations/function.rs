@@ -1,5 +1,5 @@
 use crate::parser::{
-    tokens::{Label, Token},
+    tokens::{Code, Constant, Definition, Id, Label, Statement, Token, TokenSet},
     Parser,
 };
 
@@ -13,15 +13,17 @@ impl<'a> Parser<'a> {
         let Some(parameters) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Id(id)) = self.output.pop() else {
+        let Some(Token::Id(Id(id))) = self.output.pop() else {
             panic!("Invalid operand")
         };
 
         let body = self.context.resolve(body);
 
         let body = match body {
-            Token::Result(body) => body,
-            Token::Statement { body, .. } => body,
+            Token::Result(Code(body)) => body,
+            Token::Statement(Statement {
+                body: Code(body), ..
+            }) => body,
             Token::Label(body) => {
                 let body = body.to_address();
                 format!(
@@ -29,7 +31,7 @@ impl<'a> Parser<'a> {
 mov rax, {body}"
                 )
             }
-            Token::Constant(body) => format!(
+            Token::Constant(Constant(body)) => format!(
                 "\
 mov rax, {body}"
             ),
@@ -41,7 +43,7 @@ mov rax, 0"
         };
 
         let parameters = match parameters {
-            Token::Set(parameters) => parameters
+            Token::Set(TokenSet(parameters)) => parameters
                 .into_iter()
                 .map(|p| match p {
                     Token::Label(label) => label,
@@ -130,10 +132,10 @@ ret"
             },
         };
 
-        self.output.push(Token::Item {
+        self.output.push(Token::Definition(Definition {
             name: id,
-            definition: result,
-        });
+            definition: Code(result),
+        }));
     }
 }
 

@@ -1,4 +1,7 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    tokens::{Code, Constant, Token},
+    Parser,
+};
 
 impl<'a> Parser<'a> {
     pub fn parse_dereference(&mut self) {
@@ -14,7 +17,7 @@ impl<'a> Parser<'a> {
 
         if let Token::Label(label) = label {
             let result = match index {
-                Token::Constant(index) => {
+                Token::Constant(Constant(index)) => {
                     let size = self.context.pointer_size(label.id);
                     let address = label.to_address();
                     format!(
@@ -35,7 +38,7 @@ add rax, {address}
 mov rax, QWORD[rax]"
                     )
                 }
-                Token::Result(index) => {
+                Token::Result(Code(index)) => {
                     let size = self.context.pointer_size(label.id);
                     let address = label.to_address();
                     format!(
@@ -49,7 +52,7 @@ mov rax, QWORD[rax]"
                 _ => panic!("Invalid operand"),
             };
 
-            self.output.push(Token::Result(result));
+            self.output.push(Token::Result(Code(result)));
         } else {
             panic!("Invalid operand")
         }

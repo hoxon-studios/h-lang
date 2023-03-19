@@ -1,12 +1,12 @@
 use crate::parser::{
     context::SymbolType,
-    tokens::{Label, Token},
+    tokens::{Id, Label, Token},
     Parser,
 };
 
 impl<'a> Parser<'a> {
     pub fn parse_declaration(&mut self) {
-        let Some(Token::Id(_type)) = self.output.pop() else {
+        let Some(Token::Id(Id(_type))) = self.output.pop() else {
             panic!("Invalid operand")
         };
         let Some(left) = self.output.pop() else {
@@ -37,7 +37,7 @@ impl<'a> Parser<'a> {
                 }
             };
             let id = match left {
-                Token::Id(id) => id,
+                Token::Id(Id(id)) => id,
                 Token::Label(Label { id, .. }) => id,
                 _ => panic!("Invalid operand"),
             };

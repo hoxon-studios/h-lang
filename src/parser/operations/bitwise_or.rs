@@ -1,4 +1,7 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    tokens::{Code, Constant, Token},
+    Parser,
+};
 
 impl<'a> Parser<'a> {
     pub fn parse_bitwise_or(&mut self) {
@@ -13,12 +16,12 @@ impl<'a> Parser<'a> {
         let right = self.context.resolve(right);
 
         let result = match (left, right) {
-            (Token::Constant(left), Token::Constant(right)) => format!(
+            (Token::Constant(Constant(left)), Token::Constant(Constant(right))) => format!(
                 "\
 mov rax, {left} | {right}"
             ),
-            (Token::Constant(constant), Token::Label(label))
-            | (Token::Label(label), Token::Constant(constant)) => {
+            (Token::Constant(Constant(constant)), Token::Label(label))
+            | (Token::Label(label), Token::Constant(Constant(constant))) => {
                 let label = label.to_address();
                 format!(
                     "\
@@ -26,8 +29,8 @@ mov rax, {label}
 or rax, {constant}"
                 )
             }
-            (Token::Constant(constant), Token::Result(result))
-            | (Token::Result(result), Token::Constant(constant)) => format!(
+            (Token::Constant(Constant(constant)), Token::Result(Code(result)))
+            | (Token::Result(Code(result)), Token::Constant(Constant(constant))) => format!(
                 "\
 {result}
 or rax, {constant}"
@@ -41,8 +44,8 @@ mov rax, {left}
 or rax, {right}"
                 )
             }
-            (Token::Label(label), Token::Result(result))
-            | (Token::Result(result), Token::Label(label)) => {
+            (Token::Label(label), Token::Result(Code(result)))
+            | (Token::Result(Code(result)), Token::Label(label)) => {
                 let label = label.to_address();
                 format!(
                     "\
@@ -50,7 +53,7 @@ or rax, {right}"
 or rax, {label}"
                 )
             }
-            (Token::Result(left), Token::Result(right)) => format!(
+            (Token::Result(Code(left)), Token::Result(Code(right))) => format!(
                 "\
 {left}
 push rax
@@ -61,6 +64,6 @@ or rax, rdx"
             _ => panic!("Invalid operands"),
         };
 
-        self.output.push(Token::Result(result));
+        self.output.push(Token::Result(Code(result)));
     }
 }

@@ -1,4 +1,7 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    tokens::{Code, Constant, Id, Token, TokenSet},
+    Parser,
+};
 
 pub const LINUX_SYSCALL_CONVENTION: &[&'static str] =
     &["rax", "rdi", "rsi", "rdx", "r10", "r8", "r9"];
@@ -10,11 +13,11 @@ impl<'a> Parser<'a> {
         let Some(expression) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Id(id)) = self.output.pop() else {
+        let Some(Token::Id(Id(id))) = self.output.pop() else {
             panic!("Invalid operand")
         };
         let parameters = match expression {
-            Token::Set(set) => set,
+            Token::Set(TokenSet(set)) => set,
             Token::Unit => vec![],
             _ => vec![expression],
         };
@@ -27,7 +30,7 @@ impl<'a> Parser<'a> {
         let evaluations = parameters
             .iter()
             .filter_map(|p| match p {
-                Token::Result(result) => Some(format!(
+                Token::Result(Code(result)) => Some(format!(
                     "\
 {result}
 push rax"
@@ -42,11 +45,11 @@ push rax"
             .zip(convention.iter())
             .rev()
             .map(|(p, reg)| match p {
-                Token::Constant(value) => format!(
+                Token::Constant(Constant(value)) => format!(
                     "\
 mov {reg}, {value}"
                 ),
-                Token::Id(value) => {
+                Token::Id(Id(value)) => {
                     let value = self.context.label(value).to_address();
                     format!(
                         "\
@@ -80,7 +83,7 @@ pop {reg}"
             .collect::<Vec<String>>()
             .join("\n");
 
-        self.output.push(Token::Result(result));
+        self.output.push(Token::Result(Code(result)));
     }
 }
 

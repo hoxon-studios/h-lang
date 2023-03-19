@@ -1,12 +1,12 @@
 use crate::parser::{
     context::SymbolType,
-    tokens::{Label, LabelAddress, Token},
+    tokens::{Code, Id, Label, LabelAddress, Token},
     Parser,
 };
 
 impl<'a> Parser<'a> {
     pub fn parse_navigation(&mut self) {
-        let Some(Token::Id(property)) = self.output.pop() else {
+        let Some(Token::Id(Id(property))) = self.output.pop() else {
             panic!("Invalid operand")
         };
         let Some(label) = self.output.pop() else {
@@ -36,7 +36,7 @@ impl<'a> Parser<'a> {
 mov rax, {address}
 add rax, {offset}"
                             );
-                            self.output.push(Token::Result(result));
+                            self.output.push(Token::Result(Code(result)));
                         }
                         _ => panic!("Invalid label type"),
                     },

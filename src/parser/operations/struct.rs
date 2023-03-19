@@ -1,6 +1,6 @@
 use crate::parser::{
     context::{Property, Struct},
-    tokens::Token,
+    tokens::{Id, Token},
     Parser,
 };
 
@@ -9,7 +9,7 @@ impl<'a> Parser<'a> {
         let Some(_) = self.output.pop() else {
             panic!("Invalid operand")
         };
-        let Some(Token::Id(id)) = self.output.pop() else {
+        let Some(Token::Id(Id(id))) = self.output.pop() else {
             panic!("Invalid operand")
         };
 

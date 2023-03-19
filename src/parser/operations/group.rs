@@ -1,4 +1,7 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    tokens::{Token, TokenSet},
+    Parser,
+};
 
 impl<'a> Parser<'a> {
     pub fn parse_group(&mut self) {
@@ -9,18 +12,18 @@ impl<'a> Parser<'a> {
             panic!("Invalid operand")
         };
 
-        let mut left = if let Token::Set(left) = left {
+        let mut left = if let Token::Set(TokenSet(left)) = left {
             left
         } else {
             vec![left]
         };
-        let mut right = if let Token::Set(right) = right {
+        let mut right = if let Token::Set(TokenSet(right)) = right {
             right
         } else {
             vec![right]
         };
 
         right.append(&mut left);
-        self.output.push(Token::Set(right));
+        self.output.push(Token::Set(TokenSet(right)));
     }
 }

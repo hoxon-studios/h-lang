@@ -1,4 +1,7 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    tokens::{Code, Constant, Statement, Token},
+    Parser,
+};
 
 impl<'a> Parser<'a> {
     pub fn parse_block(&mut self) {
@@ -13,72 +16,78 @@ impl<'a> Parser<'a> {
         let right = self.context.resolve(right);
 
         match left {
-            Token::Result(left) => match right {
-                Token::Statement { body: right, .. } => self.output.push(Token::Statement {
-                    body: format!(
+            Token::Result(Code(left)) => match right {
+                Token::Statement(Statement {
+                    body: Code(right), ..
+                }) => self.output.push(Token::Statement(Statement {
+                    body: Code(format!(
                         "\
 {left}
 {right}"
-                    ),
+                    )),
                     exit_label: None,
-                }),
-                Token::Result(right) => self.output.push(Token::Result(format!(
+                })),
+                Token::Result(Code(right)) => self.output.push(Token::Result(Code(format!(
                     "\
 {left}
 {right}"
-                ))),
-                Token::Constant(right) => self.output.push(Token::Result(format!(
+                )))),
+                Token::Constant(Constant(right)) => self.output.push(Token::Result(Code(format!(
                     "\
 {left}
 mov rax, {right}"
-                ))),
+                )))),
                 Token::Label(right) => {
                     let right = right.to_address();
-                    self.output.push(Token::Result(format!(
+                    self.output.push(Token::Result(Code(format!(
                         "\
 {left}
 mov rax, {right}"
-                    )))
+                    ))))
                 }
-                Token::Unit => self.output.push(Token::Result(format!(
+                Token::Unit => self.output.push(Token::Result(Code(format!(
                     "\
 {left}
 mov rax, 0"
-                ))),
+                )))),
                 _ => panic!("Invalid operand"),
             },
-            Token::Statement { body: left, .. } => match right {
-                Token::Statement { body: right, .. } => self.output.push(Token::Statement {
-                    body: format!(
+            Token::Statement(Statement {
+                body: Code(left), ..
+            }) => match right {
+                Token::Statement(Statement {
+                    body: Code(right), ..
+                }) => self.output.push(Token::Statement(Statement {
+                    body: Code(format!(
                         "\
 {left}
 {right}"
-                    ),
+                    )),
                     exit_label: None,
-                }),
-                Token::Result(right) => self.output.push(Token::Result(format!(
+                })),
+                Token::Result(Code(right)) => self.output.push(Token::Result(Code(format!(
                     "\
 {left}
 {right}"
-                ))),
-                Token::Constant(right) => self.output.push(Token::Result(format!(
+                )))),
+                Token::Constant(Constant(right)) => self.output.push(Token::Result(Code(format!(
                     "\
 {left}
 mov rax, {right}"
-                ))),
+                )))),
                 Token::Label(right) => {
                     let right = right.to_address();
-                    self.output.push(Token::Result(format!(
+                    self.output.push(Token::Result(Code(format!(
                         "\
 {left}
 mov rax, {right}"
-                    )))
+                    ))))
                 }
-                Token::Unit => self.output.push(Token::Result(format!(
+                Token::Unit => self.output.push(Token::Result(Code(format!(
                     "\
 {left}
 mov rax, 0"
-                ))),
+                )))),
                 _ => panic!("Invalid operand"),
             },
             _ => panic!("Invalid operand"),

@@ -1,4 +1,7 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    tokens::{Code, Constant, Id, Statement, Token},
+    Parser,
+};
 
 impl<'a> Parser<'a> {
     pub fn parse_assignment(&mut self) {
@@ -10,7 +13,7 @@ impl<'a> Parser<'a> {
         };
 
         let id = match address {
-            Token::Id(id) => self.context.label(id).to_address(),
+            Token::Id(Id(id)) => self.context.label(id).to_address(),
             Token::Label(label) => label.to_address(),
             Token::Result(_) => format!("QWORD[rax]"),
             _ => panic!("Invalid operand"),
@@ -18,7 +21,7 @@ impl<'a> Parser<'a> {
 
         let value = self.context.resolve(value);
         let body = match value {
-            Token::Constant(value) => format!(
+            Token::Constant(Constant(value)) => format!(
                 "\
 mov {id}, {value}"
             ),
@@ -30,7 +33,7 @@ mov rax, {value}
 mov {id}, rax"
                 )
             }
-            Token::Result(value) => format!(
+            Token::Result(Code(value)) => format!(
                 "\
 {value}
 mov {id}, rax"
@@ -38,10 +41,10 @@ mov {id}, rax"
             _ => panic!("Invalid operand"),
         };
 
-        self.output.push(Token::Statement {
-            body,
+        self.output.push(Token::Statement(Statement {
+            body: Code(body),
             exit_label: None,
-        });
+        }));
     }
 }
 

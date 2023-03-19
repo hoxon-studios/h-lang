@@ -1,4 +1,7 @@
-use crate::parser::{tokens::Token, Parser};
+use crate::parser::{
+    tokens::{Code, Token},
+    Parser,
+};
 
 impl<'a> Parser<'a> {
     pub fn parse_reference(&mut self) {
@@ -15,7 +18,7 @@ impl<'a> Parser<'a> {
 lea rax, {address}"
             );
 
-            self.output.push(Token::Result(result));
+            self.output.push(Token::Result(Code(result)));
         } else {
             panic!("Invalid operand")
         }
